@@ -1,28 +1,56 @@
-export type AreaId = 'negocios' | 'economia' | 'datos' | 'electivas'
+/* Modelo de dominio — ver Specs/02-PRD.md §2 */
 
-export type Status = 'pending' | 'in_progress' | 'approved'
+export type AreaId = 'negocios' | 'economia' | 'datos' | 'electivas';
 
-export interface Subject {
-  /** id estable (= código del plan cuando existe, o un id sintético para electivas/campo menor) */
-  id: string
-  /** código oficial del plan; vacío para electivas sin código */
-  code: string
-  name: string
-  area: AreaId
-  /** ids de las materias que deben estar aprobadas/cursadas antes */
-  prereqs: string[]
-  /** año de cursada planificado (1..4) o null si está sin asignar (EXTRA) */
-  year: number | null
-  /** cuatrimestre dentro del año (1 o 2) o null si está sin asignar */
-  sem: 1 | 2 | null
-  /** si se cursa anualmente (ocupa los dos cuatrimestres del año) */
-  annual: boolean
-  status: Status
-  /** nota (1..10) cuando status === 'approved' */
-  grade: number | null
+export type Estado =
+  | 'pendiente'
+  | 'en-curso'
+  | 'aprobada'
+  | 'desaprobada'
+  | 'desinscripta';
+
+export interface Area {
+  id: AreaId;
+  label: string;
 }
 
-export interface Issue {
-  type: 'missing' | 'late'
-  prereq: Subject
+export interface Term {
+  id: string; // ej. "1-1" (año 1, sem 1) | "extra-1"
+  anio: number; // 1..4 (9 = extra)
+  semestre: 1 | 2;
+  orden: number; // índice lineal global para comparar tiempo
+  esExtra: boolean;
+}
+
+export interface Subject {
+  id: string; // = código del plan, o uid para electivas
+  codigo: string | null;
+  nombre: string;
+  area: AreaId;
+  /** ids de materias que deben estar aprobadas/completadas antes */
+  corr: string[];
+  /** cuatrimestre donde está ubicada */
+  term: string;
+  estado: Estado;
+  nota?: number | null;
+  /** materia anual: abarca los dos semestres del año */
+  anual?: boolean;
+  /** slot de electiva editable */
+  esElectiva?: boolean;
+  slotLabel?: string;
+  /** opciones predefinidas para elegir el nombre (ej. electiva del Núcleo Digital) */
+  opciones?: string[];
+}
+
+export interface Conflict {
+  subject: Subject;
+  faltan: Subject[];
+}
+
+export interface PlanSummary {
+  promedio: number | null;
+  aprobadas: number;
+  total: number;
+  restantes: number;
+  alertas: Conflict[];
 }

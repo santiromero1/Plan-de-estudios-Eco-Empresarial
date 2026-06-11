@@ -1,187 +1,359 @@
-import { useCallback, useLayoutEffect, useRef, useState } from 'react'
-import type { Issue, Subject } from '../types'
-import { AREAS } from '../lib/areas'
-import { startIndex, completionIndex } from '../lib/validation'
-import SubjectCard from './SubjectCard'
+/* TimelineView — Flujo horizontal de correlativas con flechas SVG.
+   Permite arrastrar y reordenar materias entre cuatrimestres (y dentro). */
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useDroppable,
+  useSensor,
+  useSensors,
+  closestCorners,
+} from '@dnd-kit/core';
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import type { Subject } from '../types';
+import { SubjectCard } from './SubjectCard';
+import { SortableCard } from './SortableCard';
+import { realId } from '../lib/board';
 
-interface Props {
-  subjects: Subject[]
-  issuesById: Record<string, Issue[]>
-  onOpen: (s: Subject) => void
+const TL_COLS = [
+  { id: '1-1', year: '1.er Año', sem: 'Semestre 1' },
+  { id: '1-2', year: '1.er Año', sem: 'Semestre 2' },
+  { id: '2-1', year: '2.º Año', sem: 'Semestre 1' },
+  { id: '2-2', year: '2.º Año', sem: 'Semestre 2' },
+  { id: '3-1', year: '3.er Año', sem: 'Semestre 1' },
+  { id: '3-2', year: '3.er Año', sem: 'Semestre 2' },
+  { id: '4-1', year: '4.º Año', sem: 'Semestre 1' },
+  { id: '4-2', year: '4.º Año', sem: 'Semestre 2' },
+  { id: 'extra', year: 'Extra', sem: 'Recursadas', extra: true },
+];
+
+function colIndexOf(termId: string): number {
+  if (termId && termId.startsWith('extra')) return 8;
+  return TL_COLS.findIndex((c) => c.id === termId);
 }
 
 interface Edge {
-  d: string
-  color: string
-  bad: boolean
+  from: string;
+  to: string;
+  path: string;
+  conflict: boolean;
 }
 
-const COLS = [1, 2, 3, 4, 5, 6, 7, 8]
-
-function colMeta(idx: number) {
-  const year = Math.ceil(idx / 2)
-  const sem = idx % 2 === 1 ? 1 : 2
-  return { year, sem }
+interface Props {
+  subjects: Subject[];
+  conflicts: Set<string>;
+  faltanMap: Record<string, Subject[]>;
+  onCard: (s: Subject) => void;
+  onReorder: (activeId: string, overId: string) => void;
 }
 
-function edgesEqual(a: Edge[], b: Edge[]): boolean {
-  if (a.length !== b.length) return false
-  for (let i = 0; i < a.length; i++) {
-    if (a[i].d !== b[i].d || a[i].color !== b[i].color || a[i].bad !== b[i].bad) return false
-  }
-  return true
-}
-
-export default function TimelineView({ subjects, issuesById, onOpen }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const cardRefs = useRef<Map<string, HTMLElement>>(new Map())
-  const [edges, setEdges] = useState<Edge[]>([])
-  const [size, setSize] = useState({ w: 0, h: 0 })
-
-  const setCardRef = useCallback((id: string, el: HTMLElement | null) => {
-    if (el) cardRefs.current.set(id, el)
-    else cardRefs.current.delete(id)
-  }, [])
-
-  const recompute = useCallback(() => {
-    const container = containerRef.current
-    if (!container) return
-    const cRect = container.getBoundingClientRect()
-    const sl = container.scrollLeft
-    const st = container.scrollTop
-    const next: Edge[] = []
-
-    for (const s of subjects) {
-      if (startIndex(s) == null) continue
-      const toEl = cardRefs.current.get(s.id)
-      if (!toEl) continue
-      const tr = toEl.getBoundingClientRect()
-      const start = startIndex(s) as number
-      for (const pid of s.prereqs) {
-        const fromEl = cardRefs.current.get(pid)
-        if (!fromEl) continue
-        const p = subjects.find((x) => x.id === pid)
-        if (!p) continue
-        const fr = fromEl.getBoundingClientRect()
-
-        const x1 = fr.right - cRect.left + sl
-        const y1 = fr.top + fr.height / 2 - cRect.top + st
-        const x2 = tr.left - cRect.left + sl
-        const y2 = tr.top + tr.height / 2 - cRect.top + st
-        const dx = Math.max(30, Math.min(140, Math.abs(x2 - x1) / 2))
-
-        const pc = completionIndex(p)
-        const bad = s.status !== 'approved' && p.status !== 'approved' && (pc == null || pc >= start)
-        next.push({
-          d: `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`,
-          color: bad ? '#dc2626' : AREAS[p.area].color,
-          bad,
-        })
-      }
-    }
-    // Solo actualizamos el estado si cambió de verdad: así evitamos el bucle
-    // ResizeObserver -> setState -> re-layout -> ResizeObserver que congela la pestaña.
-    setEdges((prev) => (edgesEqual(prev, next) ? prev : next))
-    const w = container.scrollWidth
-    const h = container.scrollHeight
-    setSize((prev) => (Math.abs(prev.w - w) < 1 && Math.abs(prev.h - h) < 1 ? prev : { w, h }))
-  }, [subjects])
-
-  useLayoutEffect(() => {
-    let raf = 0
-    const schedule = () => {
-      cancelAnimationFrame(raf)
-      raf = requestAnimationFrame(recompute)
-    }
-    schedule()
-    const container = containerRef.current
-    const ro = new ResizeObserver(schedule)
-    if (container) ro.observe(container)
-    window.addEventListener('resize', schedule)
-    return () => {
-      cancelAnimationFrame(raf)
-      ro.disconnect()
-      window.removeEventListener('resize', schedule)
-    }
-  }, [recompute])
-
-  const extra = subjects.filter((s) => s.year == null || s.sem == null)
+function TLColumn({
+  col,
+  subjects,
+  conflicts,
+  faltanMap,
+  onCard,
+  hovered,
+  setHovered,
+  relatedIds,
+}: {
+  col: (typeof TL_COLS)[number];
+  subjects: Subject[];
+  conflicts: Set<string>;
+  faltanMap: Record<string, Subject[]>;
+  onCard: (s: Subject) => void;
+  hovered: string | null;
+  setHovered: (id: string | null) => void;
+  relatedIds: Set<string>;
+}) {
+  const dropId = col.extra ? 'extra-1' : col.id;
+  const { setNodeRef, isOver } = useDroppable({ id: dropId });
+  const cards = subjects.filter((s) =>
+    col.extra ? (s.term || '').startsWith('extra') : s.term === col.id,
+  );
 
   return (
-    <div className="timeline-scroll" ref={containerRef}>
-      <div className="timeline-inner">
-        <svg className="timeline-svg" width={size.w} height={size.h}>
-          <defs>
-            <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
-              <path d="M0,0 L9,4.5 L0,9 z" fill="context-stroke" />
-            </marker>
-            <marker id="arrow-red" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
-              <path d="M0,0 L9,4.5 L0,9 z" fill="#dc2626" />
-            </marker>
-          </defs>
-          {edges.map((e, i) => (
-            <path
-              key={i}
-              d={e.d}
-              fill="none"
-              stroke={e.color}
-              strokeWidth={e.bad ? 2.5 : 1.8}
-              strokeDasharray={e.bad ? '6 4' : undefined}
-              markerEnd={`url(#${e.bad ? 'arrow-red' : 'arrow'})`}
-              opacity={0.85}
-            />
-          ))}
-        </svg>
-
-        <div className="timeline-cols">
-          {COLS.map((idx) => {
-            const { year, sem } = colMeta(idx)
-            const items = subjects.filter((s) => startIndex(s) === idx)
+    <div className="tl-col">
+      <div className={`tl-col-head ${col.extra ? 'extra' : ''}`}>
+        <div className="tl-year">{col.year}</div>
+        <div className="tl-sem">{col.sem}</div>
+      </div>
+      <div ref={setNodeRef} className={`tl-cards ${isOver ? 'tl-cards-over' : ''}`}>
+        <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+          {cards.map((s) => {
+            const isDim = hovered && !relatedIds.has(s.id);
             return (
-              <div key={idx} className="tl-col">
-                <div className="tl-col-head">
-                  <strong>{year}° Año</strong>
-                  <span>{sem}° Cuat.</span>
-                </div>
-                <div className="tl-col-body">
-                  {items.length === 0 && <div className="tl-empty">—</div>}
-                  {items.map((s) => (
-                    <div key={s.id} ref={(el) => setCardRef(s.id, el)}>
-                      <SubjectCard
-                        subject={s}
-                        issues={issuesById[s.id] ?? []}
-                        onClick={() => onOpen(s)}
-                        compact
-                      />
-                    </div>
-                  ))}
+              <div
+                className="tl-card"
+                key={s.id}
+                data-tlid={s.id}
+                onMouseEnter={() => setHovered(s.id)}
+                onMouseLeave={() => setHovered(null)}
+              >
+                <div style={{ opacity: isDim ? 0.38 : 1, transition: '.15s' }}>
+                  <SortableCard
+                    subject={s}
+                    conflict={conflicts.has(s.id)}
+                    faltan={faltanMap[s.id] || []}
+                    onCard={onCard}
+                  />
                 </div>
               </div>
-            )
+            );
           })}
-
-          {extra.length > 0 && (
-            <div className="tl-col tl-col-extra">
-              <div className="tl-col-head">
-                <strong>EXTRA</strong>
-                <span>Sin asignar</span>
-              </div>
-              <div className="tl-col-body">
-                {extra.map((s) => (
-                  <div key={s.id} ref={(el) => setCardRef(s.id, el)}>
-                    <SubjectCard
-                      subject={s}
-                      issues={issuesById[s.id] ?? []}
-                      onClick={() => onOpen(s)}
-                      compact
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        </SortableContext>
+        {cards.length === 0 && (
+          <div className="col-empty" style={{ padding: '14px 8px', fontSize: 11 }}>
+            —
+          </div>
+        )}
       </div>
     </div>
-  )
+  );
+}
+
+export function TimelineView({ subjects, conflicts, faltanMap, onCard, onReorder }: Props) {
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState<Edge[]>([]);
+  const [dims, setDims] = useState({ w: 0, h: 0 });
+  const [hovered, setHovered] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const active = activeId ? subjects.find((s) => s.id === realId(activeId)) : null;
+
+  const byId: Record<string, Subject> = {};
+  subjects.forEach((s) => (byId[s.id] = s));
+
+  const measure = useCallback(() => {
+    const inner = innerRef.current;
+    if (!inner) return;
+    const ir = inner.getBoundingClientRect();
+    const pos: Record<string, { left: number; right: number; midY: number }> = {};
+    inner.querySelectorAll<HTMLElement>('[data-tlid]').forEach((el) => {
+      const r = el.getBoundingClientRect();
+      const id = el.getAttribute('data-tlid');
+      if (id) {
+        pos[id] = {
+          left: r.left - ir.left,
+          right: r.right - ir.left,
+          midY: r.top - ir.top + r.height / 2,
+        };
+      }
+    });
+
+    const list: Edge[] = [];
+    subjects.forEach((t) => {
+      (t.corr || []).forEach((cid) => {
+        const c = byId[cid];
+        if (!c || !pos[cid] || !pos[t.id]) return;
+        const isConflict = (faltanMap[t.id] || []).some((f) => f.id === cid);
+        const forward = colIndexOf(t.term) > colIndexOf(c.term);
+        const s = pos[cid];
+        const d = pos[t.id];
+        let path: string;
+        if (forward) {
+          const sx = s.right,
+            sy = s.midY,
+            tx = d.left,
+            ty = d.midY;
+          const dx = Math.max(34, (tx - sx) * 0.45);
+          path = `M ${sx} ${sy} C ${sx + dx} ${sy}, ${tx - dx} ${ty}, ${tx} ${ty}`;
+        } else {
+          const sx = s.left,
+            sy = s.midY,
+            tx = d.left,
+            ty = d.midY;
+          const dx = 30 + Math.abs(ty - sy) * 0.12;
+          path = `M ${sx} ${sy} C ${sx - dx} ${sy}, ${tx - dx} ${ty}, ${tx} ${ty}`;
+        }
+        list.push({ from: cid, to: t.id, path, conflict: isConflict });
+      });
+    });
+    setEdges(list);
+    setDims({ w: inner.scrollWidth, h: inner.scrollHeight });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subjects, faltanMap]);
+
+  useLayoutEffect(() => {
+    measure();
+  }, [measure]);
+
+  useEffect(() => {
+    const r = () => measure();
+    window.addEventListener('resize', r);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => measure());
+    const id = window.setTimeout(measure, 120);
+    return () => {
+      window.removeEventListener('resize', r);
+      window.clearTimeout(id);
+    };
+  }, [measure]);
+
+  const relatedIds = new Set<string>();
+  if (hovered) {
+    relatedIds.add(hovered);
+    edges.forEach((e) => {
+      if (e.from === hovered || e.to === hovered) {
+        relatedIds.add(e.from);
+        relatedIds.add(e.to);
+      }
+    });
+  }
+
+  function onDragStart(e: DragStartEvent) {
+    setActiveId(String(e.active.id));
+    setHovered(null);
+  }
+  function onDragEnd(e: DragEndEvent) {
+    setActiveId(null);
+    const { active: a, over } = e;
+    if (!over) return;
+    onReorder(String(a.id), String(over.id));
+  }
+
+  return (
+    <div className="timeline-wrap">
+      <div className="view-head" style={{ marginBottom: 14 }}>
+        <div>
+          <h1>Timeline de correlativas</h1>
+          <p>
+            Arrastrá las materias para reordenarlas o moverlas de cuatrimestre. Cada flecha va de una
+            materia a la que habilita; si una queda ubicada antes de aprobar su correlativa, la flecha
+            se marca en rojo.
+          </p>
+        </div>
+      </div>
+
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        onDragCancel={() => setActiveId(null)}
+      >
+        <div className="timeline-scroll scroll-x">
+          <div className="timeline-inner" ref={innerRef}>
+            <svg
+              className="tl-svg"
+              width={dims.w}
+              height={dims.h}
+              viewBox={`0 0 ${dims.w} ${dims.h}`}
+            >
+              <defs>
+                <marker
+                  id="ah"
+                  markerWidth="9"
+                  markerHeight="9"
+                  refX="6.5"
+                  refY="4"
+                  orient="auto"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <path
+                    d="M1 1 L7 4 L1 7"
+                    fill="none"
+                    stroke="var(--border-2)"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </marker>
+                <marker
+                  id="ah-c"
+                  markerWidth="9"
+                  markerHeight="9"
+                  refX="6.5"
+                  refY="4"
+                  orient="auto"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <path
+                    d="M1 1 L7 4 L1 7"
+                    fill="none"
+                    stroke="var(--danger)"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </marker>
+                <marker
+                  id="ah-a"
+                  markerWidth="9"
+                  markerHeight="9"
+                  refX="6.5"
+                  refY="4"
+                  orient="auto"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <path
+                    d="M1 1 L7 4 L1 7"
+                    fill="none"
+                    stroke="var(--info)"
+                    strokeWidth="1.9"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </marker>
+              </defs>
+              {edges.map((e, i) => {
+                const activeEdge = hovered && (e.from === hovered || e.to === hovered);
+                const dim = hovered && !activeEdge;
+                const cls = [
+                  'tl-path',
+                  e.conflict ? 'conflict' : '',
+                  activeEdge ? 'active' : '',
+                  dim ? 'dim' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ');
+                const marker = e.conflict ? 'url(#ah-c)' : activeEdge ? 'url(#ah-a)' : 'url(#ah)';
+                return <path key={i} className={cls} d={e.path} markerEnd={marker} />;
+              })}
+            </svg>
+
+            {TL_COLS.map((col) => (
+              <TLColumn
+                key={col.id}
+                col={col}
+                subjects={subjects}
+                conflicts={conflicts}
+                faltanMap={faltanMap}
+                onCard={onCard}
+                hovered={hovered}
+                setHovered={setHovered}
+                relatedIds={relatedIds}
+              />
+            ))}
+          </div>
+        </div>
+
+        <DragOverlay dropAnimation={null}>
+          {active ? (
+            <SubjectCard
+              subject={active}
+              conflict={conflicts.has(active.id)}
+              faltan={faltanMap[active.id] || []}
+              lifted
+            />
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+
+      <div className="tl-legend-row">
+        <span className="legend-title">Flechas</span>
+        <span className="lr-item">
+          <span className="lr-line" /> correlativa cumplida
+        </span>
+        <span className="lr-item">
+          <span className="lr-line conflict" /> conflicto temporal (revisar orden)
+        </span>
+        <span className="lr-item" style={{ color: 'var(--ink-muted)' }}>
+          Pasá el mouse por una materia para resaltar sus vínculos
+        </span>
+      </div>
+    </div>
+  );
 }

@@ -44,7 +44,7 @@ Este documento transcribe el plan de estudios: orden de cursada (año + semestre
 |--------|---------|--------------|
 | 2205 | Análisis Estadístico | 2203 |
 | 1501 | Instituciones Políticas y de Gobierno | — |
-| 2106 | Historia Económica Internacional | — |
+| 2106 | Historia Económica Internacional | 1101 y 1102 |
 | 3312 | Información y Contabilidad Gerencial II | 1303 |
 
 ---
@@ -57,14 +57,15 @@ Este documento transcribe el plan de estudios: orden de cursada (año + semestre
 | 2104 | Macroeconomía | 1102 |
 | 3308 | Métodos Estadísticos aplicados a los Negocios | 2205 |
 | 4327 | Marketing | 1101 |
-| 3313 | Métodos Analíticos aplicados a los Negocios | 2103 |
+| 3313 | Métodos Analíticos aplicados a los Negocios | — |
 
 ### Semestre 2
 | Código | Materia | Correlativas |
 |--------|---------|--------------|
 | 3306 | Riesgo, Incertidumbre y Finanzas | 2103 |
 | 3303 | Teoría de las Decisiones | 2103 |
-| 3311 | Dirección de Operaciones y Tecnología I | 3306 y 3312 |
+| 3311 | Dirección de Operaciones y Tecnología I | — |
+| 9004 | Expresión Oral y Escrita | — |
 | — | Materia Electiva del Núcleo Digital* | — |
 
 ---
@@ -74,9 +75,9 @@ Este documento transcribe el plan de estudios: orden de cursada (año + semestre
 ### Semestre 1
 | Código | Materia | Correlativas |
 |--------|---------|--------------|
-| 9004 | Expresión Oral y Escrita | — |
 | 4311 | Finanzas Internacionales | 3306 |
 | 4308 | Finanzas de la Empresa | 3306 y 3312 |
+| — | Curso de Campo Menor | — |
 | — | Curso de Campo Menor | — |
 
 ### Semestre 2
@@ -102,28 +103,31 @@ Leído al revés: aprobar la materia de la izquierda es requisito para cursar la
 
 | Aprobar… | …habilita a cursar |
 |----------|--------------------|
-| 1101 Economía I | 2103 Microeconomía · 4327 Marketing |
-| 1102 Economía II | 2104 Macroeconomía |
+| 1101 Economía I | 2103 Microeconomía · 4327 Marketing · 2106 Historia Económica Internacional |
+| 1102 Economía II | 2104 Macroeconomía · 2106 Historia Económica Internacional |
 | 1201 Matemática I | 1202 Matemática II |
 | 1202 Matemática II | 2203 Introducción a la Estadística · 2204 Economía Matemática |
 | 1301 Contabilidad Básica | 1303 Información y Contabilidad Gerencial I |
 | 1302 Administración I | 4326 Desarrollo de Nuevos Negocios |
 | 1303 Información y Contabilidad Gerencial I | 3312 Información y Contabilidad Gerencial II |
-| 2103 Microeconomía | 3313 Métodos Analíticos · 3306 Riesgo, Incert. y Finanzas · 3303 Teoría de las Decisiones · 4368 Estrategia Competitiva y Digital |
+| 2103 Microeconomía | 3306 Riesgo, Incert. y Finanzas · 3303 Teoría de las Decisiones · 4368 Estrategia Competitiva y Digital |
 | 2203 Introducción a la Estadística | 2205 Análisis Estadístico |
 | 2205 Análisis Estadístico | 3308 Métodos Estadísticos aplicados a los Negocios |
-| 3306 Riesgo, Incertidumbre y Finanzas | 3311 Dir. de Operaciones y Tec. I · 4311 Finanzas Internacionales · 4308 Finanzas de la Empresa · 4326 Desarrollo de Nuevos Negocios |
-| 3312 Información y Contabilidad Gerencial II | 3311 Dir. de Operaciones y Tec. I · 4308 Finanzas de la Empresa · 4326 Desarrollo de Nuevos Negocios |
+| 3306 Riesgo, Incertidumbre y Finanzas | 4311 Finanzas Internacionales · 4308 Finanzas de la Empresa · 4326 Desarrollo de Nuevos Negocios |
+| 3312 Información y Contabilidad Gerencial II | 4308 Finanzas de la Empresa · 4326 Desarrollo de Nuevos Negocios |
 | 3311 Dirección de Operaciones y Tecnología I | 4337 Dir. de Operaciones y Tec. II |
 | 3313 Métodos Analíticos aplicados a los Negocios | 4337 Dir. de Operaciones y Tec. II |
 
 ---
 
-## ⚠️ Celdas a verificar contra el plan original
+## ✅ Correcciones aplicadas (verificadas contra el plan original)
 
-La foto está rotada y algunas celdas quedaron borrosas. Tengo **alta confianza** en todo lo anterior salvo en estos puntos, que conviene chequear:
+Confirmado por el usuario contra la foto del plan oficial (2026-06-11):
 
-1. **Ubicación (año/semestre) de "Expresión Oral y Escrita" (9004) y "Materia Electiva del Núcleo Digital"**: las puse en Año 3 Sem 2 y Año 4 Sem 1 respectivamente, pero su semestre exacto en la imagen es ambiguo.
-2. **Correlativa de 3313 Métodos Analíticos aplicados a los Negocios**: leí `2103`, pero podría ser otra (la celda está borrosa).
-3. **Asteriscos en Microeconomía (2103) y Macroeconomía (2104)**: en la foto parecen tener `*`, pero el único pie de página de electiva corresponde al Núcleo Digital. Verificar si ese asterisco aplica o es ruido de la imagen.
-4. **Distinción 4311 / 4308** (Finanzas Internacionales vs. Finanzas de la Empresa) y sus correlativas exactas.
+1. **Expresión Oral y Escrita (9004)** → **Año 3, Semestre 2** (antes estaba mal en Año 4 Sem 1).
+2. **Año 4, Semestre 1**: hay **dos** Cursos de Campo Menor (antes figuraba uno solo).
+3. **Historia Económica Internacional (2106)**: correlativas **1101 y 1102** (antes figuraba sin correlativa).
+4. **Métodos Analíticos aplicados a los Negocios (3313)**: **sin correlativa** (antes figuraba `2103`).
+5. **Dirección de Operaciones y Tecnología I (3311)**: **sin correlativa** (antes figuraba `3306 y 3312`; 3306 está en el mismo cuatrimestre, no podía ser correlativa).
+
+> El resto de las correlativas se chequeó una a una y coincide con el plan oficial. La Materia Electiva del Núcleo Digital queda en Año 3 Sem 2. Los asteriscos sobre Microeconomía (2103) y Macroeconomía (2104) en la foto son ruido de imagen: el único pie de página de electiva corresponde al Núcleo Digital.
