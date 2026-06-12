@@ -101,9 +101,8 @@ export function Login({ onLogin }: { onLogin: (s: Session) => void }) {
               <div>
                 <b>¡Estamos trabajando en tu carrera!</b>
                 <p>
-                  El planificador de <b>{carreraSel!.label}</b> todavía no está disponible. Por
-                  ahora sólo podés ingresar con <b>Economía Empresarial</b>. Muy pronto sumamos la
-                  tuya. 🚀
+                  El planificador de <b>{carreraSel!.label}</b> todavía no está disponible. Muy
+                  pronto sumaremos tu carrera. 🚀
                 </p>
               </div>
             </div>
@@ -115,10 +114,6 @@ export function Login({ onLogin }: { onLogin: (s: Session) => void }) {
             Ingresar
           </button>
         </form>
-
-        <p className="login-foot">
-          Acceso provisional para la demo · Economía Empresarial
-        </p>
       </div>
     </div>
   );
