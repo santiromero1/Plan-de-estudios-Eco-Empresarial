@@ -132,6 +132,42 @@ export const Icons = {
       <path d="M3 10h18M8 2v4M16 2v4" />
     </Icon>
   ),
+  user: (
+    <Icon>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4 3.6-6 8-6s8 2 8 6" />
+    </Icon>
+  ),
+  lock: (
+    <Icon>
+      <rect x="4" y="11" width="16" height="10" rx="2.5" />
+      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+    </Icon>
+  ),
+  eye: (
+    <Icon>
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </Icon>
+  ),
+  eyeOff: (
+    <Icon>
+      <path d="M10.6 6.1A10 10 0 0 1 12 6c6.5 0 10 6 10 6a16 16 0 0 1-3.3 3.8M6.6 6.6A16 16 0 0 0 2 12s3.5 6 10 6a10 10 0 0 0 4-.8" />
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18" />
+    </Icon>
+  ),
+  cap: (
+    <Icon>
+      <path d="M22 9 12 5 2 9l10 4 10-4Z" />
+      <path d="M6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5" />
+    </Icon>
+  ),
+  logout: (
+    <Icon>
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <path d="M16 17l5-5-5-5M21 12H9" />
+    </Icon>
+  ),
 };
 
 export const ESTADO_META: Record<

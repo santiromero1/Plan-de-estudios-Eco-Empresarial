@@ -9,14 +9,27 @@ import { Header, Legend } from './components/Header';
 import { GridView } from './components/GridView';
 import { TimelineView } from './components/TimelineView';
 import { SubjectPanel } from './components/SubjectPanel';
+import { Login } from './components/Login';
+import { loadSession, logout, type Session } from './lib/auth';
 
 type View = 'grid' | 'timeline';
 
 export default function App() {
+  const [session, setSession] = useState<Session | null>(loadSession);
   const [subjects, setSubjects] = useState<Subject[]>(loadPlan);
   const [view, setView] = useState<View>('grid');
   const [openId, setOpenId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  function onLogout() {
+    logout();
+    setSession(null);
+    setOpenId(null);
+  }
+
+  if (!session) {
+    return <Login onLogin={setSession} />;
+  }
 
   const byId = useMemo(() => buildIndex(subjects), [subjects]);
 
@@ -86,6 +99,7 @@ export default function App() {
         onExport={() => exportPlan(subjects)}
         onImport={onImport}
         onReset={onReset}
+        onLogout={onLogout}
       />
 
       <input

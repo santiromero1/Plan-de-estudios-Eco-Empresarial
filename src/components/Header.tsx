@@ -131,10 +131,12 @@ function ActionsMenu({
   onExport,
   onImport,
   onReset,
+  onLogout,
 }: {
   onExport: () => void;
   onImport: () => void;
   onReset: () => void;
+  onLogout: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -173,6 +175,16 @@ function ActionsMenu({
           >
             {Icons.reset} Resetear al plan oficial
           </button>
+          <div className="menu-sep" />
+          <button
+            className="menu-item"
+            onClick={() => {
+              setOpen(false);
+              onLogout();
+            }}
+          >
+            {Icons.logout} Cerrar sesión
+          </button>
         </div>
       )}
     </div>
@@ -187,9 +199,19 @@ interface Props {
   onExport: () => void;
   onImport: () => void;
   onReset: () => void;
+  onLogout: () => void;
 }
 
-export function Header({ view, setView, summary, onJump, onExport, onImport, onReset }: Props) {
+export function Header({
+  view,
+  setView,
+  summary,
+  onJump,
+  onExport,
+  onImport,
+  onReset,
+  onLogout,
+}: Props) {
   const prom = summary.promedio;
   return (
     <header className="header">
@@ -211,7 +233,12 @@ export function Header({ view, setView, summary, onJump, onExport, onImport, onR
           </div>
         </div>
         <AlertsButton alertas={summary.alertas} onJump={onJump} />
-        <ActionsMenu onExport={onExport} onImport={onImport} onReset={onReset} />
+        <ActionsMenu
+          onExport={onExport}
+          onImport={onImport}
+          onReset={onReset}
+          onLogout={onLogout}
+        />
       </div>
     </header>
   );
