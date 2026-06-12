@@ -5,6 +5,7 @@ Especificaciones del proyecto, en orden de lectura:
 1. **[01-Discovery.md](./01-Discovery.md)** — el problema, el usuario, objetivos, contexto del dominio y decisiones tomadas.
 2. **[02-PRD.md](./02-PRD.md)** — requerimientos de producto: modelo de datos, features, reglas de validación de correlativas y criterios de aceptación.
 3. **[03-Design.md](./03-Design.md)** — brief de diseño (estética Di Tella) para generar el front-end. **Este es el que se entrega a Claude Design.** Documento vivo: se actualiza tras el desarrollo funcional.
+4. **[04-Cuentas-y-Sincronizacion.md](./04-Cuentas-y-Sincronizacion.md)** — hito posterior a la v1: cuentas (mail+contraseña), plan en la nube con autoguardado (Supabase) y acceso gateado por pago. Reemplaza las decisiones de "fuera de alcance" sobre multiusuario.
 
 Fuente de verdad del plan y correlativas:
 [`../plan-de-estudios/economia-empresarial-ditella.md`](../plan-de-estudios/economia-empresarial-ditella.md)

@@ -6,7 +6,7 @@
 
 ## 1. Resumen
 
-App web de un solo usuario para **planificar y seguir** la cursada de la Lic. en Economía Empresarial (UTDT). Permite arrastrar materias entre cuatrimestres, valida correlativas en vivo con alertas, distingue áreas por color, y registra notas para calcular el promedio. Dos vistas: **Grilla** y **Timeline de correlativas**. Persistencia en `localStorage` con export/import.
+App web **multiusuario** para **planificar y seguir** la cursada de la Lic. en Economía Empresarial (UTDT). Permite arrastrar materias entre cuatrimestres, valida correlativas en vivo con alertas, distingue áreas por color, y registra notas para calcular el promedio. Dos vistas: **Grilla** y **Timeline de correlativas**. Cada usuario se registra (mail+contraseña), su plan se **autoguarda en la nube** (Supabase) y el acceso está gateado por pago. Ver [04-Cuentas-y-Sincronizacion.md](./04-Cuentas-y-Sincronizacion.md). (`localStorage` queda como caché offline + export/import por archivo.)
 
 ---
 
@@ -156,10 +156,16 @@ Si `C` está aprobada (estado `aprobada`), se considera cumplida sin importar su
 - **US6.2**: Puedo agregar slots de electiva extra si curso más de los previstos.
 
 ### F7 — Persistencia
-- **US7.1**: Todos mis cambios se guardan automáticamente en `localStorage`.
+> **Actualizado:** ahora la fuente de verdad es la nube (Supabase), no `localStorage`. Ver [04-Cuentas-y-Sincronizacion.md](./04-Cuentas-y-Sincronizacion.md).
+- **US7.1**: Todos mis cambios se **autoguardan en la nube** (debounce ~1s) y quedan ligados a mi cuenta; `localStorage` es caché offline. Al iniciar sesión veo **lo último que guardé**, desde cualquier dispositivo.
 - **US7.2**: Puedo **exportar** mi plan a un archivo JSON (backup).
 - **US7.3**: Puedo **importar** un JSON para restaurar el plan.
 - **US7.4**: Puedo **resetear** el plan al estado inicial del plan oficial (con confirmación).
+
+### F9 — Cuentas y acceso (ver [04-Cuentas-y-Sincronizacion.md](./04-Cuentas-y-Sincronizacion.md))
+- **US9.1**: Me **registro** con mail + contraseña y elijo mi carrera.
+- **US9.2**: **Inicio sesión** y puedo **cerrar sesión** / recuperar contraseña por mail.
+- **US9.3**: El acceso a la app está condicionado a mi **estado de pago** (`access_status`); sin acceso activo veo una pantalla de "activá tu acceso".
 
 ### F8 — Navegación entre vistas
 - **US8.1**: Hay un toggle/tabs para cambiar entre **Grilla** y **Timeline**.
@@ -196,4 +202,4 @@ Si `C` está aprobada (estado `aprobada`), se considera cumplida sin importar su
 
 ## 7. No-objetivos (recordatorio)
 
-Multiusuario, horarios/choques, auto-reorganización automática, scraping del campus, app nativa. (Ver Discovery §6.)
+Horarios/choques, auto-reorganización automática, scraping del campus, app nativa. (Ver Discovery §6.) — **Multiusuario ya dejó de ser no-objetivo**: está implementado (ver [04-Cuentas-y-Sincronizacion.md](./04-Cuentas-y-Sincronizacion.md)).

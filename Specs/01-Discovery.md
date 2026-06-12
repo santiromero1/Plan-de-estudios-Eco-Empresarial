@@ -62,7 +62,7 @@ Resumen del grafo de correlativas (cadenas principales):
 |---|---|---|
 | **Proceso** | Híbrido: carpeta `Specs/` (Discovery, PRD, Design) + patrones GSD (discovery por preguntas, verificación). Sin estructura `.planning/`. | |
 | **Stack** | React + Vite + TypeScript. Deploy en Vercel. | Elección previa del proyecto. |
-| **Persistencia** | `localStorage` + export/import a JSON. Sin backend ni login. | Backup y portabilidad por archivo. |
+| **Persistencia** | v1: `localStorage` + export/import a JSON. **Actualizado:** plan en la nube (Supabase) con autoguardado + cuentas + acceso pago. Ver [04-Cuentas-y-Sincronizacion.md](./04-Cuentas-y-Sincronizacion.md). | `localStorage` queda como caché offline. |
 | **Notas** | Escala 1–10, **aprueba con 6**, promedio simple (no ponderado — el plan no tiene créditos). | UTDT suele aprobar con 4; el umbral es una **constante única** fácil de cambiar. |
 | **Electivas** | Slots placeholder editables (el usuario les pone el nombre real de la materia). | Núcleo Digital + Cursos de Campo Menor. |
 | **Vistas** | (1) Grilla por años, (2) Timeline de correlativas. | Wireframe adjunto por el usuario. |
@@ -70,7 +70,9 @@ Resumen del grafo de correlativas (cadenas principales):
 
 ## 6. Fuera de alcance (v1)
 
-- Multiusuario / cuentas / sincronización en la nube.
+> ⚠️ **Actualizado tras la v1:** "Multiusuario / cuentas / sincronización en la nube" **ya está implementado** y es ahora el núcleo del producto. Ver [04-Cuentas-y-Sincronizacion.md](./04-Cuentas-y-Sincronizacion.md). El resto de esta lista sigue vigente.
+
+- ~~Multiusuario / cuentas / sincronización en la nube.~~ → **implementado** (cuentas + Supabase + acceso pago).
 - Horarios de cursada / choques de horario / aulas.
 - Auto-reorganización automática del plan (la app **alerta**, pero el usuario mueve a mano).
 - Integración con el campus real de la UTDT (scraping de notas).

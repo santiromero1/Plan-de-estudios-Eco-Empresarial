@@ -1,35 +1,85 @@
-/* App — estado, validación en vivo, vistas y acciones. */
-import { useMemo, useRef, useState } from 'react';
+/* App — orquesta sesión, gate de acceso y el planificador.
+     - Carga la sesión de Supabase al iniciar.
+     - Sin sesión → Login. Sesión sin acceso activo → AccessGate.
+     - Con acceso activo → Planner (plan + autoguardado en la nube). */
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Subject } from './types';
 import { TERMS, freshPlan } from './data/plan';
 import { buildIndex, correlativasIncumplidas, planSummary } from './lib/logic';
 import { moveOrReorder } from './lib/board';
-import { exportPlan, loadPlan, parseImported, savePlan } from './lib/storage';
+import {
+  exportPlan,
+  loadPlan,
+  parseImported,
+  saveLocalCache,
+  syncPlanToCloud,
+} from './lib/storage';
 import { Header, Legend } from './components/Header';
 import { GridView } from './components/GridView';
 import { TimelineView } from './components/TimelineView';
 import { SubjectPanel } from './components/SubjectPanel';
 import { Login } from './components/Login';
-import { loadSession, logout, type Session } from './lib/auth';
-
-type View = 'grid' | 'timeline';
+import { AccessGate } from './components/AccessGate';
+import { getActiveSession, logout, type Session } from './lib/auth';
 
 export default function App() {
-  const [session, setSession] = useState<Session | null>(loadSession);
-  const [subjects, setSubjects] = useState<Subject[]>(loadPlan);
-  const [view, setView] = useState<View>('grid');
-  const [openId, setOpenId] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [bootstrapping, setBootstrapping] = useState(true);
 
-  function onLogout() {
-    logout();
+  // Recupera la sesión persistida al abrir la app.
+  useEffect(() => {
+    getActiveSession()
+      .then(setSession)
+      .finally(() => setBootstrapping(false));
+  }, []);
+
+  async function onLogout() {
+    await logout();
     setSession(null);
-    setOpenId(null);
+  }
+
+  if (bootstrapping) {
+    return <SplashLoader label="Cargando…" />;
   }
 
   if (!session) {
     return <Login onLogin={setSession} />;
   }
+
+  if (session.accessStatus !== 'active') {
+    return <AccessGate session={session} onLogout={onLogout} />;
+  }
+
+  return <Planner session={session} onLogout={onLogout} />;
+}
+
+type View = 'grid' | 'timeline';
+type SaveState = 'idle' | 'saving' | 'saved' | 'error';
+
+function Planner({ session, onLogout }: { session: Session; onLogout: () => void }) {
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [planLoading, setPlanLoading] = useState(true);
+  const [view, setView] = useState<View>('grid');
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [saveState, setSaveState] = useState<SaveState>('idle');
+  const fileRef = useRef<HTMLInputElement>(null);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Carga el plan del usuario desde la nube (con migración local si hace falta).
+  useEffect(() => {
+    let cancelled = false;
+    setPlanLoading(true);
+    loadPlan(session.userId, session.carrera).then((plan) => {
+      if (!cancelled) {
+        setSubjects(plan);
+        setPlanLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+  }, [session.userId, session.carrera]);
 
   const byId = useMemo(() => buildIndex(subjects), [subjects]);
 
@@ -48,15 +98,23 @@ export default function App() {
     return { conflicts, faltanMap, summary: planSummary(subjects, TERMS) };
   }, [subjects]);
 
+  /** Aplica el cambio, guarda al instante en local y sincroniza a la nube
+      con debounce (~1s tras el último cambio). */
   function commit(next: Subject[]) {
     setSubjects(next);
-    savePlan(next);
+    saveLocalCache(session.userId, session.carrera, next);
+    setSaveState('saving');
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => {
+      const res = await syncPlanToCloud(session.userId, session.carrera, next);
+      setSaveState(res.ok ? 'saved' : 'error');
+      if (res.ok) setTimeout(() => setSaveState('idle'), 2000);
+    }, 1000);
   }
 
   function updateSubject(next: Subject) {
     commit(subjects.map((s) => (s.id === next.id ? { ...s, ...next } : s)));
   }
-
   function reorder(activeId: string, overId: string) {
     commit(moveOrReorder(subjects, activeId, overId));
   }
@@ -78,10 +136,13 @@ export default function App() {
   }
   function onReset() {
     if (confirm('¿Resetear el plan al estado oficial inicial? Se perderán tus cambios.')) {
-      const fresh = freshPlan();
-      commit(fresh);
+      commit(freshPlan());
       setOpenId(null);
     }
+  }
+
+  if (planLoading) {
+    return <SplashLoader label="Cargando tu plan…" />;
   }
 
   const openSubject = openId ? subjects.find((s) => s.id === openId) : null;
@@ -101,6 +162,8 @@ export default function App() {
         onReset={onReset}
         onLogout={onLogout}
       />
+
+      <SaveBadge state={saveState} />
 
       <input
         type="file"
@@ -171,4 +234,20 @@ export default function App() {
       )}
     </div>
   );
+}
+
+function SplashLoader({ label }: { label: string }) {
+  return (
+    <div className="splash">
+      <div className="splash-spinner" />
+      <p>{label}</p>
+    </div>
+  );
+}
+
+function SaveBadge({ state }: { state: SaveState }) {
+  if (state === 'idle') return null;
+  const text =
+    state === 'saving' ? 'Guardando…' : state === 'saved' ? 'Guardado ✓' : 'Error al guardar';
+  return <div className={`save-badge save-badge--${state}`}>{text}</div>;
 }

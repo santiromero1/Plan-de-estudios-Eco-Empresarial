@@ -1,10 +1,12 @@
-/* auth.ts — Autenticación (provisional, hardcodeada).
-   Esta capa está pensada para reemplazarse luego por un backend real con
-   base de datos. Por ahora valida contra un usuario fijo y guarda la sesión
-   en localStorage. El plan de cada usuario se persiste aparte (storage.ts).
+/* auth.ts — Autenticación con Supabase.
+   Login/registro por mail + contraseña. El "nombre de usuario" y la carrera
+   se guardan en la tabla `profiles`. El acceso a la app se gatea por
+   `access_status` (pending → todavía no pagó; active → pagó; expired).
 
-   Cuando exista el back, sólo hay que reemplazar `login()` por una llamada a
-   la API y mantener la misma forma de `Session`. */
+   Supabase maneja el hash de la contraseña, el reset por mail y la sesión
+   persistida. Acá sólo orquestamos y traducimos errores al español. */
+
+import { supabase } from './supabase';
 
 export interface Carrera {
   id: string;
@@ -35,64 +37,123 @@ export function carreraById(id: string): Carrera | undefined {
   return CARRERAS.find((c) => c.id === id);
 }
 
+export type AccessStatus = 'pending' | 'active' | 'expired';
+
 export interface Session {
-  user: string;
+  userId: string;
+  email: string;
+  username: string | null;
   carrera: string; // id de Carrera
+  accessStatus: AccessStatus;
 }
 
-// Credenciales fijas (provisional). Reemplazar por backend real más adelante.
-const HARDCODED_USER = 'alumno';
-const HARDCODED_PASS = 'ditella2026';
-
-const AUTH_KEY = 'planificador-auth-v1';
-
-export type LoginResult =
+export type AuthResult =
   | { ok: true; session: Session }
-  | { ok: false; error: string };
+  | { ok: false; error: string }
+  /** Registro OK pero falta confirmar el mail (sin sesión todavía). */
+  | { ok: false; needsEmailConfirm: true };
 
-/** Valida credenciales + carrera disponible. Persiste la sesión si todo OK. */
-export function login(user: string, pass: string, carrera: string): LoginResult {
+interface ProfileRow {
+  username: string | null;
+  carrera: string;
+  access_status: AccessStatus;
+}
+
+/** Trae el perfil del usuario logueado y arma la Session. */
+async function buildSession(userId: string, email: string): Promise<Session | null> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('username, carrera, access_status')
+    .eq('id', userId)
+    .single<ProfileRow>();
+
+  if (error || !data) return null;
+  return {
+    userId,
+    email,
+    username: data.username,
+    carrera: data.carrera,
+    accessStatus: data.access_status,
+  };
+}
+
+/** Registro: crea el usuario en Supabase Auth. El trigger `handle_new_user`
+    crea la fila en `profiles` con username + carrera desde la metadata. */
+export async function register(
+  email: string,
+  pass: string,
+  username: string,
+  carrera: string,
+): Promise<AuthResult> {
   const c = carreraById(carrera);
   if (!c) return { ok: false, error: 'Elegí una carrera para continuar.' };
   if (!c.disponible) {
-    return {
-      ok: false,
-      error: 'El planificador para esta carrera todavía no está disponible.',
-    };
+    return { ok: false, error: 'El planificador para esta carrera todavía no está disponible.' };
   }
-  if (user.trim() !== HARDCODED_USER || pass !== HARDCODED_PASS) {
-    return { ok: false, error: 'Usuario o contraseña incorrectos.' };
-  }
-  const session: Session = { user: user.trim(), carrera: c.id };
-  try {
-    localStorage.setItem(AUTH_KEY, JSON.stringify(session));
-  } catch {
-    /* almacenamiento bloqueado: la sesión vive sólo en memoria */
-  }
+
+  const { data, error } = await supabase.auth.signUp({
+    email: email.trim(),
+    password: pass,
+    options: { data: { username: username.trim(), carrera: c.id } },
+  });
+
+  if (error) return { ok: false, error: traducirError(error.message) };
+
+  // Sin sesión → Supabase espera confirmación por mail.
+  if (!data.session || !data.user) return { ok: false, needsEmailConfirm: true };
+
+  const session = await buildSession(data.user.id, data.user.email ?? email.trim());
+  if (!session) return { ok: false, error: 'No se pudo cargar tu perfil. Probá iniciar sesión.' };
   return { ok: true, session };
 }
 
-/** Recupera la sesión persistida (si la hay). */
-export function loadSession(): Session | null {
-  try {
-    const raw = localStorage.getItem(AUTH_KEY);
-    if (!raw) return null;
-    const s = JSON.parse(raw);
-    if (s && typeof s.user === 'string' && typeof s.carrera === 'string') {
-      // Si la carrera dejó de estar disponible, invalida la sesión.
-      const c = carreraById(s.carrera);
-      if (c?.disponible) return s as Session;
-    }
-  } catch {
-    /* corrupto */
-  }
-  return null;
+/** Login con mail + contraseña. */
+export async function login(email: string, pass: string): Promise<AuthResult> {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: email.trim(),
+    password: pass,
+  });
+
+  if (error) return { ok: false, error: traducirError(error.message) };
+  if (!data.user) return { ok: false, error: 'No se pudo iniciar sesión.' };
+
+  const session = await buildSession(data.user.id, data.user.email ?? email.trim());
+  if (!session) return { ok: false, error: 'No se pudo cargar tu perfil.' };
+  return { ok: true, session };
 }
 
-export function logout(): void {
-  try {
-    localStorage.removeItem(AUTH_KEY);
-  } catch {
-    /* ignore */
-  }
+/** Recupera la sesión persistida al abrir la app (si la hay). */
+export async function getActiveSession(): Promise<Session | null> {
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) return null;
+  return buildSession(data.user.id, data.user.email ?? '');
+}
+
+export async function logout(): Promise<void> {
+  await supabase.auth.signOut();
+}
+
+/** Envía mail de reseteo de contraseña. */
+export async function requestPasswordReset(email: string): Promise<{ ok: boolean; error?: string }> {
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+    redirectTo: window.location.origin,
+  });
+  if (error) return { ok: false, error: traducirError(error.message) };
+  return { ok: true };
+}
+
+/** Traduce los mensajes de error más comunes de Supabase al español. */
+function traducirError(msg: string): string {
+  const m = msg.toLowerCase();
+  if (m.includes('invalid login credentials')) return 'Mail o contraseña incorrectos.';
+  if (m.includes('email not confirmed')) return 'Confirmá tu mail antes de ingresar.';
+  if (m.includes('user already registered') || m.includes('already been registered'))
+    return 'Ya existe una cuenta con ese mail. Iniciá sesión.';
+  if (m.includes('password should be at least'))
+    return 'La contraseña debe tener al menos 6 caracteres.';
+  if (m.includes('unable to validate email') || m.includes('invalid email'))
+    return 'El mail no es válido.';
+  if (m.includes('rate limit') || m.includes('too many'))
+    return 'Demasiados intentos. Esperá un momento e intentá de nuevo.';
+  return 'Ocurrió un error. Intentá de nuevo.';
 }
