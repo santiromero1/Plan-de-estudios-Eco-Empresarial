@@ -16,23 +16,8 @@ import type { Subject } from '../types';
 import { SubjectCard } from './SubjectCard';
 import { SortableCard } from './SortableCard';
 import { realId } from '../lib/board';
-
-const TL_COLS = [
-  { id: '1-1', year: '1.er Año', sem: 'Semestre 1' },
-  { id: '1-2', year: '1.er Año', sem: 'Semestre 2' },
-  { id: '2-1', year: '2.º Año', sem: 'Semestre 1' },
-  { id: '2-2', year: '2.º Año', sem: 'Semestre 2' },
-  { id: '3-1', year: '3.er Año', sem: 'Semestre 1' },
-  { id: '3-2', year: '3.er Año', sem: 'Semestre 2' },
-  { id: '4-1', year: '4.º Año', sem: 'Semestre 1' },
-  { id: '4-2', year: '4.º Año', sem: 'Semestre 2' },
-  { id: 'extra', year: 'Extra', sem: 'Recursadas', extra: true },
-];
-
-function colIndexOf(termId: string): number {
-  if (termId && termId.startsWith('extra')) return 8;
-  return TL_COLS.findIndex((c) => c.id === termId);
-}
+import { usePlan } from '../context/PlanContext';
+import { timelineColsOf, type TLCol } from '../data/plan';
 
 interface Edge {
   from: string;
@@ -59,7 +44,7 @@ function TLColumn({
   setHovered,
   relatedIds,
 }: {
-  col: (typeof TL_COLS)[number];
+  col: TLCol;
   subjects: Subject[];
   conflicts: Set<string>;
   faltanMap: Record<string, Subject[]>;
@@ -68,8 +53,7 @@ function TLColumn({
   setHovered: (id: string | null) => void;
   relatedIds: Set<string>;
 }) {
-  const dropId = col.extra ? 'extra-1' : col.id;
-  const { setNodeRef, isOver } = useDroppable({ id: dropId });
+  const { setNodeRef, isOver } = useDroppable({ id: col.dropId });
   const cards = subjects.filter((s) =>
     col.extra ? (s.term || '').startsWith('extra') : s.term === col.id,
   );
@@ -115,6 +99,11 @@ function TLColumn({
 }
 
 export function TimelineView({ subjects, conflicts, faltanMap, onCard, onReorder }: Props) {
+  const { plan } = usePlan();
+  const cols = timelineColsOf(plan.terms);
+  /** orden lineal de un cuatrimestre (para la dirección de las flechas). */
+  const ordenOf = (termId: string): number =>
+    plan.terms.find((t) => t.id === termId)?.orden ?? -1;
   const innerRef = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [dims, setDims] = useState({ w: 0, h: 0 });
@@ -150,7 +139,7 @@ export function TimelineView({ subjects, conflicts, faltanMap, onCard, onReorder
         const c = byId[cid];
         if (!c || !pos[cid] || !pos[t.id]) return;
         const isConflict = (faltanMap[t.id] || []).some((f) => f.id === cid);
-        const forward = colIndexOf(t.term) > colIndexOf(c.term);
+        const forward = ordenOf(t.term) > ordenOf(c.term);
         const s = pos[cid];
         const d = pos[t.id];
         let path: string;
@@ -314,7 +303,7 @@ export function TimelineView({ subjects, conflicts, faltanMap, onCard, onReorder
               })}
             </svg>
 
-            {TL_COLS.map((col) => (
+            {cols.map((col) => (
               <TLColumn
                 key={col.id}
                 col={col}

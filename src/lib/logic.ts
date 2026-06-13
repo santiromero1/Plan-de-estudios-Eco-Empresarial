@@ -2,7 +2,6 @@
    Espeja PRD §2.3 y §5. Sin React: testeable y portable. */
 
 import type { PlanSummary, Subject, Term } from '../types';
-import { NOTA_APROBACION } from '../data/plan';
 
 export function buildIndex(subjects: Subject[]): Record<string, Subject> {
   const byId: Record<string, Subject> = {};
@@ -60,7 +59,11 @@ export function tieneConflicto(
 }
 
 /** Resumen del plan: promedio, aprobadas, total, alertas. */
-export function planSummary(subjects: Subject[], terms: Term[]): PlanSummary {
+export function planSummary(
+  subjects: Subject[],
+  terms: Term[],
+  notaAprobacion: number,
+): PlanSummary {
   const byId = buildIndex(subjects);
 
   // Electivas sin nombre no cuentan al total.
@@ -68,7 +71,7 @@ export function planSummary(subjects: Subject[], terms: Term[]): PlanSummary {
   const total = cuentan.length;
 
   const aprobadas = subjects.filter(
-    (s) => s.estado === 'aprobada' && s.nota != null && s.nota >= NOTA_APROBACION,
+    (s) => s.estado === 'aprobada' && s.nota != null && s.nota >= notaAprobacion,
   );
   const promedio = aprobadas.length
     ? aprobadas.reduce((acc, s) => acc + (s.nota as number), 0) / aprobadas.length

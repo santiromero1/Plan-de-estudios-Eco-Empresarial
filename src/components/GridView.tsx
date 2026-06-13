@@ -20,14 +20,8 @@ import { SubjectCard } from './SubjectCard';
 import { SortableCard } from './SortableCard';
 import { realId } from '../lib/board';
 import { Icons } from './icons';
-
-const YEARS = [
-  { anio: 1, label: '1.er Año', terms: ['1-1', '1-2'] as const },
-  { anio: 2, label: '2.º Año', terms: ['2-1', '2-2'] as const },
-  { anio: 3, label: '3.er Año', terms: ['3-1', '3-2'] as const },
-  { anio: 4, label: '4.º Año', terms: ['4-1', '4-2'] as const },
-];
-const EXTRA = { label: 'Extra', terms: ['extra-1', 'extra-2'] as const };
+import { usePlan } from '../context/PlanContext';
+import { yearBlocksOf, type YearBlock as YearBlockData } from '../data/plan';
 
 interface CommonProps {
   conflicts: Set<string>;
@@ -139,43 +133,35 @@ function Column({
 }
 
 function YearBlock({
-  year,
-  isExtra,
+  block,
   subjects,
   conflicts,
   faltanMap,
   onCard,
 }: CommonProps & {
-  year: { label: string; terms: readonly string[] };
-  isExtra?: boolean;
+  block: YearBlockData;
   subjects: Subject[];
 }) {
-  const [t1, t2] = year.terms;
+  const isExtra = block.esExtra;
   return (
     <div className="year-block">
       <div className={`year-pill ${isExtra ? 'extra' : ''}`}>
-        {year.label}
+        {block.label}
         {isExtra && <span className="yp-meta">materias corridas / recursadas</span>}
       </div>
       <div className="cols">
-        <Column
-          termId={t1}
-          label={isExtra ? 'Cuatrim. corrido 1' : 'Semestre 1'}
-          isExtra={isExtra}
-          subjects={subjects}
-          conflicts={conflicts}
-          faltanMap={faltanMap}
-          onCard={onCard}
-        />
-        <Column
-          termId={t2}
-          label={isExtra ? 'Cuatrim. corrido 2' : 'Semestre 2'}
-          isExtra={isExtra}
-          subjects={subjects}
-          conflicts={conflicts}
-          faltanMap={faltanMap}
-          onCard={onCard}
-        />
+        {block.termIds.map((termId, i) => (
+          <Column
+            key={termId}
+            termId={termId}
+            label={isExtra ? `Cuatrim. corrido ${i + 1}` : `Semestre ${i + 1}`}
+            isExtra={isExtra}
+            subjects={subjects}
+            conflicts={conflicts}
+            faltanMap={faltanMap}
+            onCard={onCard}
+          />
+        ))}
       </div>
     </div>
   );
@@ -187,6 +173,8 @@ interface GridProps extends CommonProps {
 }
 
 export function GridView({ subjects, conflicts, faltanMap, onCard, onReorder }: GridProps) {
+  const { plan } = usePlan();
+  const blocks = yearBlocksOf(plan.terms);
   const [activeId, setActiveId] = useState<string | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
@@ -211,24 +199,16 @@ export function GridView({ subjects, conflicts, faltanMap, onCard, onReorder }: 
       onDragCancel={() => setActiveId(null)}
     >
       <div>
-        {YEARS.map((y) => (
+        {blocks.map((b) => (
           <YearBlock
-            key={y.anio}
-            year={y}
+            key={b.key}
+            block={b}
             subjects={subjects}
             conflicts={conflicts}
             faltanMap={faltanMap}
             onCard={onCard}
           />
         ))}
-        <YearBlock
-          year={EXTRA}
-          isExtra
-          subjects={subjects}
-          conflicts={conflicts}
-          faltanMap={faltanMap}
-          onCard={onCard}
-        />
       </div>
 
       <DragOverlay dropAnimation={null}>

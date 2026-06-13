@@ -103,9 +103,9 @@ function normalize(raw: unknown): { state: StateMap; order: string[] } {
 }
 
 /** Reconstruye el plan completo a partir de un payload guardado. */
-function reconstruct(raw: unknown): Subject[] {
+function reconstruct(raw: unknown, carrera: string): Subject[] {
   const { state, order } = normalize(raw);
-  return applyOrder(applyState(freshPlan(), state), order);
+  return applyOrder(applyState(freshPlan(carrera), state), order);
 }
 
 function readLocalPayload(userId: string, carrera: string): unknown {
@@ -141,7 +141,7 @@ export async function loadPlan(userId: string, carrera: string): Promise<Subject
 
   const cloud = !error && data?.data ? normalize(data.data) : null;
   if (cloud && Object.keys(cloud.state).length > 0) {
-    const subjects = reconstruct(data!.data);
+    const subjects = reconstruct(data!.data, carrera);
     saveLocalCache(userId, carrera, subjects);
     return subjects;
   }
@@ -150,13 +150,13 @@ export async function loadPlan(userId: string, carrera: string): Promise<Subject
   const localRaw = readLocalPayload(userId, carrera);
   const local = localRaw ? normalize(localRaw) : null;
   if (local && Object.keys(local.state).length > 0) {
-    const subjects = reconstruct(localRaw);
+    const subjects = reconstruct(localRaw, carrera);
     // Migración: subimos lo local a la nube (best-effort, no bloquea).
     void syncPlanToCloud(userId, carrera, subjects);
     return subjects;
   }
 
-  return freshPlan();
+  return freshPlan(carrera);
 }
 
 /** Sincroniza el plan a la nube (upsert por user_id+carrera). */
@@ -188,12 +188,12 @@ export function exportPlan(subjects: Subject[]): void {
 
 /** Importa un backup (array de materias) y lo reproyecta sobre el plan oficial
     actual, conservando tu progreso y el orden aunque la estructura haya cambiado. */
-export function parseImported(text: string): Subject[] | null {
+export function parseImported(text: string, carrera: string): Subject[] | null {
   try {
     const data = JSON.parse(text);
     if (Array.isArray(data) && data.every((s) => s && typeof s.id === 'string')) {
       const arr = data as Subject[];
-      return applyOrder(applyState(freshPlan(), extractState(arr)), arr.map((s) => s.id));
+      return applyOrder(applyState(freshPlan(carrera), extractState(arr)), arr.map((s) => s.id));
     }
   } catch {
     /* inválido */

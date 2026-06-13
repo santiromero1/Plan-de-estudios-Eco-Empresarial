@@ -181,9 +181,3 @@ export const ESTADO_META: Record<
   desinscripta: { label: 'Desinscripta', icon: Icons.minus, color: 'var(--ink-muted)' },
 };
 
-export const AREA_LABEL: Record<string, string> = {
-  negocios: 'Negocios',
-  economia: 'Economía',
-  datos: 'Datos',
-  electivas: 'Electiva',
-};

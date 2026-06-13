@@ -2,6 +2,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { PlanSummary, Subject } from '../types';
 import { Icons } from './icons';
+import { usePlan } from '../context/PlanContext';
 
 type View = 'grid' | 'timeline';
 
@@ -17,12 +18,13 @@ function useOutside(ref: React.RefObject<HTMLElement>, onOut: () => void) {
 }
 
 function Brand() {
+  const { plan } = usePlan();
   return (
     <div className="brand">
       <img className="brand-logo" src="/ditella.png" alt="Universidad Torcuato Di Tella" />
       <div className="brand-text">
         <b>Mi Plan de Estudios</b>
-        <small>Economía Empresarial · UTDT</small>
+        <small>{plan.label} · UTDT</small>
       </div>
     </div>
   );
@@ -245,19 +247,14 @@ export function Header({
 }
 
 export function Legend() {
-  const items: [string, string][] = [
-    ['negocios', 'Negocios'],
-    ['economia', 'Economía y Cs. Sociales'],
-    ['datos', 'Datos y Análisis Cuantitativo'],
-    ['electivas', 'Electivas'],
-  ];
+  const { plan } = usePlan();
   return (
     <div className="legend">
       <span className="legend-title">Áreas</span>
-      {items.map(([k, label]) => (
-        <span key={k} className="legend-item">
-          <span className="legend-dot" style={{ background: `var(--${k})` }} />
-          {label}
+      {plan.areas.map((a) => (
+        <span key={a.id} className="legend-item">
+          <span className="legend-dot" style={{ background: a.color }} />
+          {a.label}
         </span>
       ))}
     </div>

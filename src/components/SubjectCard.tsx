@@ -8,7 +8,8 @@ import type {
   Ref,
 } from 'react';
 import type { Subject } from '../types';
-import { Icons, AREA_LABEL } from './icons';
+import { Icons } from './icons';
+import { usePlan } from '../context/PlanContext';
 
 function StatusBadge({ estado, nota }: { estado: Subject['estado']; nota?: number | null }) {
   if (estado === 'aprobada') {
@@ -69,16 +70,26 @@ export function SubjectCard({
   anualCaption,
 }: Props) {
   const [hover, setHover] = useState(false);
+  const { areaById } = usePlan();
+  const area = areaById(subject.area);
   const isElectivaEmpty = subject.esElectiva && !subject.nombre;
 
+  // Colores del área inyectados como CSS custom properties (data-driven).
+  const areaStyle = {
+    '--accent': area.color,
+    '--area-bg': area.tint,
+  } as CSSProperties;
+
   const dragProps = drag
-    ? { ref: drag.setNodeRef, style: drag.style, ...drag.attributes, ...drag.listeners }
+    ? { ref: drag.setNodeRef, ...drag.attributes, ...drag.listeners }
     : {};
+  const mergedStyle: CSSProperties = { ...areaStyle, ...(drag?.style ?? {}) };
 
   if (isElectivaEmpty) {
     return (
       <div
-        className="card area-electivas is-electiva-empty"
+        className="card is-electiva-empty"
+        style={mergedStyle}
         onClick={onClick}
         title="Click para nombrar la electiva"
         {...dragProps}
@@ -91,7 +102,6 @@ export function SubjectCard({
 
   const cls = [
     'card',
-    `area-${subject.area}`,
     `is-${subject.estado}`,
     conflict ? 'has-conflict' : '',
     subject.anual ? 'is-anual' : '',
@@ -108,7 +118,7 @@ export function SubjectCard({
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <div className={cls} onClick={onClick} {...dragProps}>
+      <div className={cls} style={mergedStyle} onClick={onClick} {...dragProps}>
         <div className="card-top">
           <div style={{ flex: 1 }}>
             {subject.esElectiva && <div className="electiva-slot-label">{subject.slotLabel}</div>}
@@ -123,7 +133,7 @@ export function SubjectCard({
         <div className="card-meta">
           {subject.codigo && <span className="card-code">{subject.codigo}</span>}
           {subject.codigo && <span className="dot" />}
-          <span>{AREA_LABEL[subject.area]}</span>
+          <span>{area.label}</span>
           {subject.anual && (
             <>
               <span className="dot" />

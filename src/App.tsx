@@ -3,8 +3,8 @@
      - Sin sesión → Login. Sesión sin acceso activo → AccessGate.
      - Con acceso activo → Planner (plan + autoguardado en la nube). */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Subject } from './types';
-import { TERMS, freshPlan } from './data/plan';
+import type { CarreraPlan, Subject } from './types';
+import { freshPlan, getPlan } from './data/plan';
 import { buildIndex, correlativasIncumplidas, planSummary } from './lib/logic';
 import { moveOrReorder } from './lib/board';
 import {
@@ -20,6 +20,7 @@ import { TimelineView } from './components/TimelineView';
 import { SubjectPanel } from './components/SubjectPanel';
 import { Login } from './components/Login';
 import { AccessGate } from './components/AccessGate';
+import { PlanProvider } from './context/PlanContext';
 import { getActiveSession, logout, type Session } from './lib/auth';
 
 export default function App() {
@@ -50,13 +51,28 @@ export default function App() {
     return <AccessGate session={session} onLogout={onLogout} />;
   }
 
-  return <Planner session={session} onLogout={onLogout} />;
+  const plan = getPlan(session.carrera);
+  if (!plan) {
+    // No debería pasar (el login sólo deja entrar a carreras con plan),
+    // pero por las dudas no rompemos la app.
+    return <AccessGate session={session} onLogout={onLogout} />;
+  }
+
+  return <Planner session={session} plan={plan} onLogout={onLogout} />;
 }
 
 type View = 'grid' | 'timeline';
 type SaveState = 'idle' | 'saving' | 'saved' | 'error';
 
-function Planner({ session, onLogout }: { session: Session; onLogout: () => void }) {
+function Planner({
+  session,
+  plan,
+  onLogout,
+}: {
+  session: Session;
+  plan: CarreraPlan;
+  onLogout: () => void;
+}) {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [planLoading, setPlanLoading] = useState(true);
   const [view, setView] = useState<View>('grid');
@@ -89,14 +105,18 @@ function Planner({ session, onLogout }: { session: Session; onLogout: () => void
     const conflicts = new Set<string>();
     const faltanMap: Record<string, Subject[]> = {};
     subjects.forEach((s) => {
-      const faltan = correlativasIncumplidas(s, idx, TERMS);
+      const faltan = correlativasIncumplidas(s, idx, plan.terms);
       faltanMap[s.id] = faltan;
       if (s.estado !== 'desinscripta' && s.estado !== 'aprobada' && faltan.length) {
         conflicts.add(s.id);
       }
     });
-    return { conflicts, faltanMap, summary: planSummary(subjects, TERMS) };
-  }, [subjects]);
+    return {
+      conflicts,
+      faltanMap,
+      summary: planSummary(subjects, plan.terms, plan.notaAprobacion),
+    };
+  }, [subjects, plan]);
 
   /** Aplica el cambio, guarda al instante en local y sincroniza a la nube
       con debounce (~1s tras el último cambio). */
@@ -116,7 +136,7 @@ function Planner({ session, onLogout }: { session: Session; onLogout: () => void
     commit(subjects.map((s) => (s.id === next.id ? { ...s, ...next } : s)));
   }
   function reorder(activeId: string, overId: string) {
-    commit(moveOrReorder(subjects, activeId, overId));
+    commit(moveOrReorder(subjects, activeId, overId, plan.terms));
   }
 
   function onImport() {
@@ -127,7 +147,7 @@ function Planner({ session, onLogout }: { session: Session; onLogout: () => void
     if (!f) return;
     const reader = new FileReader();
     reader.onload = () => {
-      const data = parseImported(String(reader.result));
+      const data = parseImported(String(reader.result), session.carrera);
       if (data) commit(data);
       else alert('Archivo inválido: no es un plan exportado válido.');
     };
@@ -136,7 +156,7 @@ function Planner({ session, onLogout }: { session: Session; onLogout: () => void
   }
   function onReset() {
     if (confirm('¿Resetear el plan al estado oficial inicial? Se perderán tus cambios.')) {
-      commit(freshPlan());
+      commit(freshPlan(session.carrera));
       setOpenId(null);
     }
   }
@@ -148,7 +168,8 @@ function Planner({ session, onLogout }: { session: Session; onLogout: () => void
   const openSubject = openId ? subjects.find((s) => s.id === openId) : null;
 
   return (
-    <div className="app">
+    <PlanProvider plan={plan}>
+      <div className="app">
       <Header
         view={view}
         setView={setView}
@@ -232,7 +253,8 @@ function Planner({ session, onLogout }: { session: Session; onLogout: () => void
           onChange={updateSubject}
         />
       )}
-    </div>
+      </div>
+    </PlanProvider>
   );
 }
 

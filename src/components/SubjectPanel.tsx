@@ -1,8 +1,8 @@
 /* SubjectPanel — Drawer de materia: estado, nota, anual, editar electiva. */
 import { useEffect, useState } from 'react';
 import type { Estado, Subject } from '../types';
-import { AREAS, NOTA_APROBACION } from '../data/plan';
 import { Icons, ESTADO_META } from './icons';
+import { usePlan } from '../context/PlanContext';
 
 const ESTADOS_ORDEN: Estado[] = [
   'pendiente',
@@ -30,9 +30,11 @@ export function SubjectPanel({ subject, faltan, byId, onClose, onChange }: Props
     setOtra(!!subject.nombre && ops.length > 0 && !ops.includes(subject.nombre));
   }, [subject]);
 
+  const { plan, areaById } = usePlan();
+  const area = areaById(local.area);
   const meta = ESTADO_META[local.estado];
   const isAprobada = local.estado === 'aprobada';
-  const aprueba = local.nota != null && local.nota >= NOTA_APROBACION;
+  const aprueba = local.nota != null && local.nota >= plan.notaAprobacion;
 
   function patch(p: Partial<Subject>) {
     const next = { ...local, ...p };
@@ -59,11 +61,11 @@ export function SubjectPanel({ subject, faltan, byId, onClose, onChange }: Props
       <aside className="panel" role="dialog" aria-label={`Materia ${local.nombre}`}>
         <header className="panel-head">
           <span
-            className={`panel-area-tag area-${local.area}`}
-            style={{ background: `var(--${local.area}-tint)`, color: `var(--${local.area})` }}
+            className="panel-area-tag"
+            style={{ background: area.tint, color: area.color }}
           >
-            <span className="legend-dot" style={{ background: `var(--${local.area})` }} />
-            {AREAS[local.area].label}
+            <span className="legend-dot" style={{ background: area.color }} />
+            {area.label}
           </span>
           <button className="panel-close" onClick={onClose} aria-label="Cerrar">
             {Icons.x}
@@ -184,13 +186,13 @@ export function SubjectPanel({ subject, faltan, byId, onClose, onChange }: Props
                 <div className={`nota-hint ${aprueba ? '' : 'fail'}`}>
                   {aprueba ? (
                     <>
-                      Materia <b>aprobada</b> (≥ {NOTA_APROBACION}).
+                      Materia <b>aprobada</b> (≥ {plan.notaAprobacion}).
                       <br />
                       Entra al promedio.
                     </>
                   ) : (
                     <>
-                      Con nota &lt; {NOTA_APROBACION} <b>no aprueba</b>.
+                      Con nota &lt; {plan.notaAprobacion} <b>no aprueba</b>.
                       <br />
                       No suma al promedio.
                     </>

@@ -2,15 +2,12 @@
    Funciona para Grilla y Timeline: el orden DENTRO de un cuatrimestre lo
    determina la posición en el array; cambiar de cuatrimestre = cambiar `term`. */
 
-import type { Subject } from '../types';
-import { TERMS } from '../data/plan';
+import type { Subject, Term } from '../types';
 
 /** Quita el sufijo ':end' que usan los segmentos espejo de materias anuales. */
 export function realId(id: string): string {
   return id.split(':')[0];
 }
-
-const TERM_IDS = new Set(TERMS.map((t) => t.id));
 
 /**
  * Mueve/reordena `activeId` según dónde se soltó (`overId`).
@@ -21,7 +18,9 @@ export function moveOrReorder(
   subjects: Subject[],
   activeRawId: string,
   overRawId: string,
+  terms: Term[],
 ): Subject[] {
+  const termIds = new Set(terms.map((t) => t.id));
   const activeId = realId(activeRawId);
   const overId = realId(overRawId);
   if (activeId === overId) return subjects;
@@ -29,7 +28,7 @@ export function moveOrReorder(
   const active = subjects.find((s) => s.id === activeId);
   if (!active) return subjects;
 
-  const overIsTerm = TERM_IDS.has(overId);
+  const overIsTerm = termIds.has(overId);
   let targetTerm: string;
   let insertBeforeId: string | null = null;
 

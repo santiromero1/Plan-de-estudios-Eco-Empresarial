@@ -7,31 +7,39 @@
    persistida. Acá sólo orquestamos y traducimos errores al español. */
 
 import { supabase } from './supabase';
+import { hasPlan } from '../data/plan';
 
 export interface Carrera {
   id: string;
   label: string;
-  /** true sólo para las carreras cuyo planificador ya está desarrollado. */
+  /** true sólo para las carreras cuyo planificador ya está desarrollado.
+      Se deriva automáticamente del registro de planes (PLANS en data/plan). */
   disponible: boolean;
 }
 
-/** Carreras de grado de la UTDT (orden alfabético).
-    Hoy sólo Economía Empresarial tiene el planificador desarrollado. */
-export const CARRERAS: Carrera[] = [
-  { id: 'abogacia', label: 'Abogacía', disponible: false },
-  { id: 'admin-empresas', label: 'Administración de Empresas', disponible: false },
-  { id: 'arquitectura', label: 'Arquitectura', disponible: false },
-  { id: 'ciencia-politica', label: 'Ciencia Política y Gobierno', disponible: false },
-  { id: 'ciencias-comportamiento', label: 'Ciencias del Comportamiento', disponible: false },
-  { id: 'ciencias-sociales', label: 'Ciencias Sociales', disponible: false },
-  { id: 'diseno', label: 'Diseño', disponible: false },
-  { id: 'economia', label: 'Economía', disponible: false },
-  { id: 'economia-empresarial', label: 'Economía Empresarial', disponible: true },
-  { id: 'estudios-internacionales', label: 'Estudios Internacionales', disponible: false },
-  { id: 'historia', label: 'Historia', disponible: false },
-  { id: 'ingenieria-industrial', label: 'Ingeniería Industrial', disponible: false },
-  { id: 'tecnologia-digital', label: 'Tecnología Digital', disponible: false },
+/** Carreras de grado de la UTDT (orden alfabético). La disponibilidad se
+    calcula según si ya existe el plan en el registro: agregar una carrera a
+    PLANS la habilita sola, sin tocar esta lista. */
+const CARRERAS_RAW: { id: string; label: string }[] = [
+  { id: 'abogacia', label: 'Abogacía' },
+  { id: 'admin-empresas', label: 'Administración de Empresas' },
+  { id: 'arquitectura', label: 'Arquitectura' },
+  { id: 'ciencia-politica', label: 'Ciencia Política y Gobierno' },
+  { id: 'ciencias-comportamiento', label: 'Ciencias del Comportamiento' },
+  { id: 'ciencias-sociales', label: 'Ciencias Sociales' },
+  { id: 'diseno', label: 'Diseño' },
+  { id: 'economia', label: 'Economía' },
+  { id: 'economia-empresarial', label: 'Economía Empresarial' },
+  { id: 'estudios-internacionales', label: 'Estudios Internacionales' },
+  { id: 'historia', label: 'Historia' },
+  { id: 'ingenieria-industrial', label: 'Ingeniería Industrial' },
+  { id: 'tecnologia-digital', label: 'Tecnología Digital' },
 ];
+
+export const CARRERAS: Carrera[] = CARRERAS_RAW.map((c) => ({
+  ...c,
+  disponible: hasPlan(c.id),
+}));
 
 export function carreraById(id: string): Carrera | undefined {
   return CARRERAS.find((c) => c.id === id);

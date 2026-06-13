@@ -615,22 +615,10 @@ input {
   cursor: grabbing;
 }
 
-/* Tinte por área (fondo completo) */
-.card.area-negocios {
-  background: var(--negocios-tint);
-  --accent: var(--negocios);
-}
-.card.area-economia {
-  background: var(--economia-tint);
-  --accent: var(--economia);
-}
-.card.area-datos {
-  background: var(--datos-tint);
-  --accent: var(--datos);
-}
-.card.area-electivas {
-  background: var(--electivas-tint);
-  --accent: var(--electivas);
+/* Tinte por área (fondo completo). El color (--accent) y el fondo (--area-bg)
+   los inyecta cada card por inline-style, desde la paleta de la carrera. */
+.card {
+  background: var(--area-bg, var(--surface));
 }
 
 .card-top {
@@ -821,14 +809,14 @@ input {
 /* Electiva placeholder editable */
 .card.is-electiva-empty {
   background: transparent;
-  border: 1.5px dashed var(--electivas);
+  border: 1.5px dashed var(--accent);
   cursor: pointer;
 }
 .card.is-electiva-empty::before {
   display: none;
 }
 .card.is-electiva-empty:hover {
-  background: var(--electivas-tint);
+  background: var(--area-bg);
   transform: none;
   box-shadow: none;
 }
