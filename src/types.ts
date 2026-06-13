@@ -39,6 +39,9 @@ export interface Subject {
   area: AreaId; // id de un área de la carrera
   /** ids de materias que deben estar aprobadas/completadas antes */
   corr: string[];
+  /** ids de correlativas RECOMENDADAS (no obligatorias; no generan alertas,
+      sólo se informan en el panel de la materia). */
+  corrRec?: string[];
   /** cuatrimestre donde está ubicada */
   term: string;
   estado: Estado;

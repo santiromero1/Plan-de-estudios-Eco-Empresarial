@@ -24,10 +24,12 @@ Menos fricción: ingreso con un click, sin contraseña.
 - Ojo: al entrar por Google el perfil se crea sin `carrera` elegida →
   pedir la carrera la primera vez (paso de onboarding) o por defecto.
 
-### 3. Multi-carrera (planes de las otras 12 carreras)
-Depende de que la facultad pase materias + correlativas → **arrancar el pedido
-en paralelo, no bloquea lo demás**. La app ya está preparada (tabla `plans` por
-carrera, selector de carrera existe). Falta sólo la data de cada plan oficial.
+### 3. Multi-carrera (planes de las otras 12 carreras) — EN CURSO
+Infra **lista** (refactor multi-carrera commiteado): áreas/colores/grilla por
+carrera, registro `PLANS` en src/data/plan.ts, disponibilidad derivada sola.
+Para sumar una carrera: crear `src/data/<carrera>.ts` (áreas + terms + materias
+con correlativas) y registrarla en `PLANS`. **Ahora:** transcribir cada plan
+desde los PDFs que pasa el usuario, de a una carrera, y verificar.
 
 ### 4. Landing / contexto
 Página simple que explique qué es y cuánto sale (para gente que llega de afuera).

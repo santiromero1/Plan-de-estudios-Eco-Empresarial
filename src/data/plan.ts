@@ -8,12 +8,13 @@
 
 import type { CarreraPlan, Subject, Term } from '../types';
 import { economiaEmpresarial } from './economia-empresarial';
+import { tecnologiaDigital } from './tecnologia-digital';
 
 /** Registro de planes disponibles, keyeado por id de carrera. */
 export const PLANS: Record<string, CarreraPlan> = {
   [economiaEmpresarial.id]: economiaEmpresarial,
+  [tecnologiaDigital.id]: tecnologiaDigital,
   // Agregar acá las demás carreras a medida que se transcriben:
-  // [abogacia.id]: abogacia,
 };
 
 export function getPlan(carreraId: string): CarreraPlan | undefined {

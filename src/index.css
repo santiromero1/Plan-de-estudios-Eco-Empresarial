@@ -1345,6 +1345,21 @@ select.text-input {
   font-style: italic;
 }
 
+/* Correlativas recomendadas (no obligatorias) */
+.corr-rec-note {
+  font-size: 12px;
+  color: var(--ink-muted);
+  line-height: 1.5;
+  margin: 2px 0 8px;
+}
+.corr-item.rec {
+  background: var(--info-tint);
+}
+.corr-item.rec .ci-ico {
+  background: var(--info);
+  color: #fff;
+}
+
 .panel-conflict-banner {
   display: flex;
   gap: 11px;

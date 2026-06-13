@@ -239,6 +239,28 @@ export function SubjectPanel({ subject, faltan, byId, onClose, onChange }: Props
               </div>
             )}
           </div>
+
+          {local.corrRec && local.corrRec.length > 0 && (
+            <div>
+              <div className="field-label">{Icons.spark} Correlativas recomendadas</div>
+              <div className="corr-rec-note">
+                No son obligatorias, pero la facultad recomienda haber cursado antes:
+              </div>
+              <div className="corr-list">
+                {local.corrRec.map((cid) => {
+                  const c = byId[cid];
+                  if (!c) return null;
+                  return (
+                    <div key={cid} className="corr-item rec">
+                      <span className="ci-ico">{Icons.spark}</span>
+                      <span className="ci-name">{c.nombre}</span>
+                      <span className="ci-state">{ESTADO_META[c.estado].label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </aside>
     </>
