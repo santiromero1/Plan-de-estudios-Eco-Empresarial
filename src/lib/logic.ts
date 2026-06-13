@@ -48,14 +48,51 @@ export function correlativasIncumplidas(
     });
 }
 
-/** ¿La materia tiene conflicto de correlativa? (solo aún no completadas) */
+function anioDe(subject: Subject, terms: Term[]): number {
+  return termById(terms, subject.term)?.anio ?? Infinity;
+}
+
+/** Gate de ciclo: materias de años <= reqHasta que faltan completar/aprobar
+    antes de que esta materia empiece. Vacío si no hay reqHasta o está cumplido. */
+export function gateIncumplido(
+  subject: Subject,
+  all: Subject[],
+  terms: Term[],
+): Subject[] {
+  const req = subject.reqHasta;
+  if (!req) return [];
+  const inicio = ordenInicio(subject, terms);
+  return all.filter((c) => {
+    if (c.id === subject.id) return false;
+    if (c.esElectiva) return false; // los slots de electiva no se "aprueban"
+    if (anioDe(c, terms) > req) return false; // sólo años <= reqHasta (excluye extra)
+    if (c.estado === 'aprobada') return false; // aprobada cuenta siempre
+    return !(ordenCompletado(c, terms) < inicio); // debe completar ANTES
+  });
+}
+
+/** Todas las faltantes (correlativas materia-a-materia + gate de ciclo). */
+export function incumplidas(
+  subject: Subject,
+  byId: Record<string, Subject>,
+  all: Subject[],
+  terms: Term[],
+): Subject[] {
+  const corr = correlativasIncumplidas(subject, byId, terms);
+  const gate = gateIncumplido(subject, all, terms);
+  const vistos = new Set(corr.map((s) => s.id));
+  return [...corr, ...gate.filter((g) => !vistos.has(g.id))];
+}
+
+/** ¿La materia tiene conflicto? (correlativas o gate; solo aún no completadas) */
 export function tieneConflicto(
   subject: Subject,
   byId: Record<string, Subject>,
+  all: Subject[],
   terms: Term[],
 ): boolean {
   if (subject.estado === 'desinscripta' || subject.estado === 'aprobada') return false;
-  return correlativasIncumplidas(subject, byId, terms).length > 0;
+  return incumplidas(subject, byId, all, terms).length > 0;
 }
 
 /** Resumen del plan: promedio, aprobadas, total, alertas. */
@@ -78,8 +115,8 @@ export function planSummary(
     : null;
 
   const alertas = subjects
-    .filter((s) => tieneConflicto(s, byId, terms))
-    .map((s) => ({ subject: s, faltan: correlativasIncumplidas(s, byId, terms) }));
+    .filter((s) => tieneConflicto(s, byId, subjects, terms))
+    .map((s) => ({ subject: s, faltan: incumplidas(s, byId, subjects, terms) }));
 
   return {
     promedio,

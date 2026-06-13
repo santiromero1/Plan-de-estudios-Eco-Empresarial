@@ -42,6 +42,10 @@ export interface Subject {
   /** ids de correlativas RECOMENDADAS (no obligatorias; no generan alertas,
       sólo se informan en el panel de la materia). */
   corrRec?: string[];
+  /** "Gate" de ciclo: requiere tener aprobadas TODAS las materias hasta este
+      año (inclusive) antes de cursar. Ej.: reqHasta=1 → todo 1° año aprobado;
+      reqHasta=2 → todo 1° y 2°. Usado en carreras con reglas de ciclo. */
+  reqHasta?: number;
   /** cuatrimestre donde está ubicada */
   term: string;
   estado: Estado;

@@ -9,11 +9,13 @@
 import type { CarreraPlan, Subject, Term } from '../types';
 import { economiaEmpresarial } from './economia-empresarial';
 import { tecnologiaDigital } from './tecnologia-digital';
+import { abogacia } from './abogacia';
 
 /** Registro de planes disponibles, keyeado por id de carrera. */
 export const PLANS: Record<string, CarreraPlan> = {
   [economiaEmpresarial.id]: economiaEmpresarial,
   [tecnologiaDigital.id]: tecnologiaDigital,
+  [abogacia.id]: abogacia,
   // Agregar acá las demás carreras a medida que se transcriben:
 };
 

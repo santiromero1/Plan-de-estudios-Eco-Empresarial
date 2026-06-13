@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import type { Estado, Subject } from '../types';
 import { Icons, ESTADO_META } from './icons';
 import { usePlan } from '../context/PlanContext';
+import { ordinalAnio } from '../data/plan';
 
 const ESTADOS_ORDEN: Estado[] = [
   'pendiente',
@@ -15,12 +16,14 @@ const ESTADOS_ORDEN: Estado[] = [
 interface Props {
   subject: Subject;
   faltan: Subject[];
+  /** materias del gate de ciclo (reqHasta) que faltan completar. */
+  gateFaltan: Subject[];
   byId: Record<string, Subject>;
   onClose: () => void;
   onChange: (next: Subject) => void;
 }
 
-export function SubjectPanel({ subject, faltan, byId, onClose, onChange }: Props) {
+export function SubjectPanel({ subject, faltan, gateFaltan, byId, onClose, onChange }: Props) {
   const [local, setLocal] = useState<Subject>(subject);
   // ¿La electiva con opciones está en modo "Otra" (nombre libre)?
   const [otra, setOtra] = useState(false);
@@ -219,9 +222,11 @@ export function SubjectPanel({ subject, faltan, byId, onClose, onChange }: Props
           <div>
             <div className="field-label">{Icons.link} Correlativas requeridas</div>
             {!local.corr || local.corr.length === 0 ? (
-              <div className="corr-empty">
-                Sin correlativas — se puede cursar en cualquier momento.
-              </div>
+              !local.reqHasta ? (
+                <div className="corr-empty">
+                  Sin correlativas — se puede cursar en cualquier momento.
+                </div>
+              ) : null
             ) : (
               <div className="corr-list">
                 {local.corr.map((cid) => {
@@ -239,6 +244,32 @@ export function SubjectPanel({ subject, faltan, byId, onClose, onChange }: Props
               </div>
             )}
           </div>
+
+          {local.reqHasta && (
+            <div>
+              <div className="field-label">{Icons.lock} Requisito de año</div>
+              <div className="corr-rec-note">
+                Para cursar necesitás tener aprobado <b>todo {ordinalAnio(local.reqHasta)} año</b>
+                {local.reqHasta > 1 ? ' (y los anteriores)' : ''}.
+              </div>
+              {gateFaltan.length === 0 ? (
+                <div className="corr-item ok">
+                  <span className="ci-ico">{Icons.check}</span>
+                  <span className="ci-name">Cumplís el requisito.</span>
+                </div>
+              ) : (
+                <div className="corr-list">
+                  {gateFaltan.map((c) => (
+                    <div key={c.id} className="corr-item bad">
+                      <span className="ci-ico">{Icons.warn}</span>
+                      <span className="ci-name">{c.nombre}</span>
+                      <span className="ci-state">{ESTADO_META[c.estado].label}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {local.corrRec && local.corrRec.length > 0 && (
             <div>

@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CarreraPlan, Subject } from './types';
 import { freshPlan, getPlan } from './data/plan';
-import { buildIndex, correlativasIncumplidas, planSummary } from './lib/logic';
+import { buildIndex, gateIncumplido, incumplidas, planSummary } from './lib/logic';
 import { moveOrReorder } from './lib/board';
 import {
   exportPlan,
@@ -105,7 +105,7 @@ function Planner({
     const conflicts = new Set<string>();
     const faltanMap: Record<string, Subject[]> = {};
     subjects.forEach((s) => {
-      const faltan = correlativasIncumplidas(s, idx, plan.terms);
+      const faltan = incumplidas(s, idx, subjects, plan.terms);
       faltanMap[s.id] = faltan;
       if (s.estado !== 'desinscripta' && s.estado !== 'aprobada' && faltan.length) {
         conflicts.add(s.id);
@@ -246,6 +246,11 @@ function Planner({
           faltan={
             openSubject.estado !== 'aprobada' && openSubject.estado !== 'desinscripta'
               ? faltanMap[openSubject.id] || []
+              : []
+          }
+          gateFaltan={
+            openSubject.estado !== 'aprobada' && openSubject.estado !== 'desinscripta'
+              ? gateIncumplido(openSubject, subjects, plan.terms)
               : []
           }
           byId={byId}
