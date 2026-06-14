@@ -138,6 +138,12 @@ export const Icons = {
       <path d="M4 21c0-4 3.6-6 8-6s8 2 8 6" />
     </Icon>
   ),
+  mail: (
+    <Icon>
+      <rect x="3" y="5" width="18" height="14" rx="2.5" />
+      <path d="m3.5 7 8.5 6 8.5-6" />
+    </Icon>
+  ),
   lock: (
     <Icon>
       <rect x="4" y="11" width="16" height="10" rx="2.5" />

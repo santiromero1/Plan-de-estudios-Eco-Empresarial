@@ -116,8 +116,9 @@ export function Login({ onLogin }: { onLogin: (s: Session) => void }) {
         </div>
 
         <form className="login-form" onSubmit={onSubmit}>
+          <div key={mode} className="login-swap">
           <label className="login-field">
-            <span className="login-label">{Icons.user} Mail</span>
+            <span className="login-label">{Icons.mail} Mail</span>
             <input
               className="login-input"
               type="email"
@@ -238,6 +239,7 @@ export function Login({ onLogin }: { onLogin: (s: Session) => void }) {
               ¿Olvidaste tu contraseña?
             </button>
           )}
+          </div>
         </form>
       </div>
     </div>
