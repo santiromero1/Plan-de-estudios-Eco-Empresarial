@@ -24,12 +24,17 @@ Menos fricción: ingreso con un click, sin contraseña.
 - Ojo: al entrar por Google el perfil se crea sin `carrera` elegida →
   pedir la carrera la primera vez (paso de onboarding) o por defecto.
 
-### 3. Multi-carrera (planes de las otras 12 carreras) — EN CURSO
-Infra **lista** (refactor multi-carrera commiteado): áreas/colores/grilla por
-carrera, registro `PLANS` en src/data/plan.ts, disponibilidad derivada sola.
-Para sumar una carrera: crear `src/data/<carrera>.ts` (áreas + terms + materias
-con correlativas) y registrarla en `PLANS`. **Ahora:** transcribir cada plan
-desde los PDFs que pasa el usuario, de a una carrera, y verificar.
+### 3. Multi-carrera — ✅ COMPLETO (13/13)
+Las 13 carreras de grado están cargadas y habilitadas. Features construidos en
+el camino: áreas/colores por carrera, grilla derivada de los terms (soporta
+4 y 5 años), correlativas recomendadas (`corrRec`), gate de ciclo (`reqHasta`),
+orientaciones con toggle (Ciencia Política, Ciencias Sociales), slots editables
+con desplegable (`opciones`), y aviso de plan (`aviso`).
+**Pendiente menor:** Ingeniería Industrial no tiene correlativas cargadas
+(sólo materias + áreas, con aviso); agregarlas cuando estén disponibles.
+**Verificar:** las áreas de las carreras cuyo material no las traía fueron
+diseñadas (Abogacía, Arquitectura, Economía, Estudios Int., Historia, Diseño,
+Ing. Industrial); Ciencias Sociales fue transcripción de mejor esfuerzo.
 
 ### 4. Landing / contexto
 Página simple que explique qué es y cuánto sale (para gente que llega de afuera).
