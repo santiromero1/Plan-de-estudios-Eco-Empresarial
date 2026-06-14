@@ -14,6 +14,7 @@ import { adminEmpresas } from './admin-empresas';
 import { arquitectura } from './arquitectura';
 import { cienciaPolitica } from './ciencia-politica';
 import { cienciasComportamiento } from './ciencias-comportamiento';
+import { cienciasSociales } from './ciencias-sociales';
 
 /** Registro de planes disponibles, keyeado por id de carrera. */
 export const PLANS: Record<string, CarreraPlan> = {
@@ -24,6 +25,7 @@ export const PLANS: Record<string, CarreraPlan> = {
   [arquitectura.id]: arquitectura,
   [cienciaPolitica.id]: cienciaPolitica,
   [cienciasComportamiento.id]: cienciasComportamiento,
+  [cienciasSociales.id]: cienciasSociales,
   // Agregar acá las demás carreras a medida que se transcriben:
 };
 
