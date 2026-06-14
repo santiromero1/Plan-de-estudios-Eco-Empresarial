@@ -1829,6 +1829,9 @@ select.text-input {
   text-align: center;
   padding: 10px 0;
 }
+.support-done h3 {
+  justify-content: center;
+}
 .support-done-ico {
   display: inline-grid;
   place-items: center;
