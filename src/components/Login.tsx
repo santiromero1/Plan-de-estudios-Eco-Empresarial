@@ -148,7 +148,7 @@ export function Login({ onLogin }: { onLogin: (s: Session) => void }) {
                 />
               </label>
               <label className="login-field">
-                <span className="login-label">Apellido</span>
+                <span className="login-label">{Icons.user} Apellido</span>
                 <input
                   className="login-input"
                   type="text"

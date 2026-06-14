@@ -1689,6 +1689,42 @@ select.text-input {
   box-shadow: none;
 }
 
+/* Botón secundario outlined (violeta), icono centrado con el texto */
+.login-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 11px;
+  border: 1.5px solid var(--economia);
+  background: transparent;
+  color: var(--economia);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  transition: 0.16s;
+}
+.login-outline:hover {
+  background: var(--economia-tint);
+}
+.login-outline:active {
+  transform: translateY(1px);
+}
+.login-outline svg {
+  width: 17px;
+  height: 17px;
+}
+
+/* Acciones de la pantalla de acceso pendiente, apiladas y centradas */
+.gate-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
+}
+
 /* Fila de dos campos (Nombre / Apellido) */
 .login-row {
   display: flex;
@@ -1754,7 +1790,11 @@ select.text-input {
   margin: 0 0 16px;
 }
 .support-form .login-field {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+}
+.support-form .login-submit,
+.support-done .login-submit {
+  width: 100%;
 }
 .support-textarea {
   resize: vertical;

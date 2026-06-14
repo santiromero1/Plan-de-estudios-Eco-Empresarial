@@ -39,13 +39,14 @@ export function AccessGate({
           </div>
         </div>
 
-        <button type="button" className="login-submit" onClick={() => setSupport(true)}>
-          {Icons.inbox} Contactar soporte
-        </button>
-
-        <button type="button" className="login-link" onClick={onLogout}>
-          {Icons.logout} Cerrar sesión
-        </button>
+        <div className="gate-actions">
+          <button type="button" className="login-outline" onClick={() => setSupport(true)}>
+            {Icons.inbox} Contactar soporte
+          </button>
+          <button type="button" className="login-link" onClick={onLogout}>
+            {Icons.logout} Cerrar sesión
+          </button>
+        </div>
       </div>
 
       {support && (
