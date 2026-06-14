@@ -36,6 +36,18 @@ con desplegable (`opciones`), y aviso de plan (`aviso`).
 diseñadas (Abogacía, Arquitectura, Economía, Estudios Int., Historia, Diseño,
 Ing. Industrial); Ciencias Sociales fue transcripción de mejor esfuerzo.
 
+**Diferencias con la Guía de Carreras 2027** (decisión: dejar las versiones por
+cohorte con correlativas; revisar cuando salga el PDF oficial 2027 con códigos):
+- **Historia**: la guía 2027 lista "Historia y Cultura" (en vez de "Historia y
+  Literatura", 1° S1) e "Historia de Asia y África" (en vez de "Historia del
+  siglo XX", 3° S2).
+- **Ciencias Sociales**: la guía 2027 trae un tronco común revisado (Historia
+  del Mundo I/II, Lectura y Escritura, Dilemas Filosóficos, Lógica y Pensamiento
+  Científico, + Ciencias del Comportamiento, Oratoria, Debates Sociales
+  Contemporáneos, Teoría Política). El esquema de electivas por orientación sí
+  coincide.
+- Resto de las 13: verificadas y coinciden con la guía 2027.
+
 ### 4. Landing / contexto
 Página simple que explique qué es y cuánto sale (para gente que llega de afuera).
 
