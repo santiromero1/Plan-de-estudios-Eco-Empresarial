@@ -89,3 +89,24 @@ create trigger profiles_touch_updated before update on public.profiles
 --   update public.profiles set access_status = 'active' where id = '<uuid>';
 -- El uuid se ve en Authentication → Users.
 -- ============================================================
+
+-- ============================================================
+-- Mensajes de soporte (contacto desde la app)
+-- ============================================================
+create table public.support_messages (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete set null,
+  email text,
+  nombre text,
+  carrera text,
+  tipo text,
+  mensaje text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.support_messages enable row level security;
+
+-- Cualquier usuario logueado puede crear su propio mensaje (incl. pending).
+create policy "support_insert_own" on public.support_messages
+  for insert with check (auth.uid() = user_id);
+-- (No hay policy de select: los mensajes se leen desde el Table Editor.)

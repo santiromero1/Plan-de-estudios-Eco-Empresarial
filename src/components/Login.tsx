@@ -17,7 +17,8 @@ export function Login({ onLogin }: { onLogin: (s: Session) => void }) {
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [pass, setPass] = useState('');
-  const [username, setUsername] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [apellido, setApellido] = useState('');
   const [carrera, setCarrera] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +33,8 @@ export function Login({ onLogin }: { onLogin: (s: Session) => void }) {
       ? email.trim() !== '' && pass !== ''
       : email.trim() !== '' &&
         pass !== '' &&
-        username.trim() !== '' &&
+        nombre.trim() !== '' &&
+        apellido.trim() !== '' &&
         !!carreraSel &&
         carreraSel.disponible;
 
@@ -52,7 +54,7 @@ export function Login({ onLogin }: { onLogin: (s: Session) => void }) {
       const res =
         mode === 'login'
           ? await login(email, pass)
-          : await register(email, pass, username, carrera);
+          : await register(email, pass, nombre, apellido, carrera);
 
       if (res.ok) {
         onLogin(res.session);
@@ -130,20 +132,36 @@ export function Login({ onLogin }: { onLogin: (s: Session) => void }) {
           </label>
 
           {mode === 'register' && (
-            <label className="login-field">
-              <span className="login-label">{Icons.user} Nombre de usuario</span>
-              <input
-                className="login-input"
-                type="text"
-                autoComplete="username"
-                placeholder="Cómo querés que te llamemos"
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                  setError(null);
-                }}
-              />
-            </label>
+            <div className="login-row">
+              <label className="login-field">
+                <span className="login-label">{Icons.user} Nombre</span>
+                <input
+                  className="login-input"
+                  type="text"
+                  autoComplete="given-name"
+                  placeholder="Tu nombre"
+                  value={nombre}
+                  onChange={(e) => {
+                    setNombre(e.target.value);
+                    setError(null);
+                  }}
+                />
+              </label>
+              <label className="login-field">
+                <span className="login-label">Apellido</span>
+                <input
+                  className="login-input"
+                  type="text"
+                  autoComplete="family-name"
+                  placeholder="Tu apellido"
+                  value={apellido}
+                  onChange={(e) => {
+                    setApellido(e.target.value);
+                    setError(null);
+                  }}
+                />
+              </label>
+            </div>
           )}
 
           <label className="login-field">

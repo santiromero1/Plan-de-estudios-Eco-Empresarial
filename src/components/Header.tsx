@@ -133,11 +133,13 @@ function ActionsMenu({
   onExport,
   onImport,
   onReset,
+  onSupport,
   onLogout,
 }: {
   onExport: () => void;
   onImport: () => void;
   onReset: () => void;
+  onSupport: () => void;
   onLogout: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -178,6 +180,15 @@ function ActionsMenu({
             {Icons.reset} Resetear al plan oficial
           </button>
           <div className="menu-sep" />
+          <button
+            className="menu-item"
+            onClick={() => {
+              setOpen(false);
+              onSupport();
+            }}
+          >
+            {Icons.inbox} Contactar soporte
+          </button>
           <button
             className="menu-item"
             onClick={() => {
@@ -232,6 +243,7 @@ interface Props {
   onExport: () => void;
   onImport: () => void;
   onReset: () => void;
+  onSupport: () => void;
   onLogout: () => void;
 }
 
@@ -246,6 +258,7 @@ export function Header({
   onExport,
   onImport,
   onReset,
+  onSupport,
   onLogout,
 }: Props) {
   const prom = summary.promedio;
@@ -278,6 +291,7 @@ export function Header({
           onExport={onExport}
           onImport={onImport}
           onReset={onReset}
+          onSupport={onSupport}
           onLogout={onLogout}
         />
       </div>

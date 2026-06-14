@@ -45,6 +45,11 @@ export function carreraById(id: string): Carrera | undefined {
   return CARRERAS.find((c) => c.id === id);
 }
 
+/** Primer nombre (para saludar). El nombre completo vive en `session.username`. */
+export function nombreDePila(nombreCompleto: string | null): string {
+  return (nombreCompleto ?? '').trim().split(/\s+/)[0] ?? '';
+}
+
 export type AccessStatus = 'pending' | 'active' | 'expired';
 
 export interface Session {
@@ -113,11 +118,13 @@ export async function setOrientacion(
 }
 
 /** Registro: crea el usuario en Supabase Auth. El trigger `handle_new_user`
-    crea la fila en `profiles` con username + carrera desde la metadata. */
+    crea la fila en `profiles` con el nombre completo (guardado en `username`)
+    + carrera desde la metadata. */
 export async function register(
   email: string,
   pass: string,
-  username: string,
+  nombre: string,
+  apellido: string,
   carrera: string,
 ): Promise<AuthResult> {
   const c = carreraById(carrera);
@@ -126,10 +133,13 @@ export async function register(
     return { ok: false, error: 'El planificador para esta carrera todavía no está disponible.' };
   }
 
+  // El nombre completo se guarda en `username` (campo de display, no de login).
+  const nombreCompleto = `${nombre.trim()} ${apellido.trim()}`.trim();
+
   const { data, error } = await supabase.auth.signUp({
     email: email.trim(),
     password: pass,
-    options: { data: { username: username.trim(), carrera: c.id } },
+    options: { data: { username: nombreCompleto, carrera: c.id } },
   });
 
   if (error) return { ok: false, error: traducirError(error.message) };

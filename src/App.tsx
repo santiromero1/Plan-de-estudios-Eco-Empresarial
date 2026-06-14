@@ -21,6 +21,7 @@ import { TimelineView } from './components/TimelineView';
 import { SubjectPanel } from './components/SubjectPanel';
 import { Login } from './components/Login';
 import { AccessGate } from './components/AccessGate';
+import { SupportModal } from './components/SupportModal';
 import { PlanProvider } from './context/PlanContext';
 import { getActiveSession, logout, setOrientacion, type Session } from './lib/auth';
 
@@ -106,6 +107,7 @@ function Planner({
   const [view, setView] = useState<View>('grid');
   const [openId, setOpenId] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<SaveState>('idle');
+  const [supportOpen, setSupportOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -212,6 +214,7 @@ function Planner({
         onExport={() => exportPlan(subjects)}
         onImport={onImport}
         onReset={onReset}
+        onSupport={() => setSupportOpen(true)}
         onLogout={onLogout}
       />
 
@@ -295,6 +298,10 @@ function Planner({
           onClose={() => setOpenId(null)}
           onChange={updateSubject}
         />
+      )}
+
+      {supportOpen && (
+        <SupportModal session={session} contexto="general" onClose={() => setSupportOpen(false)} />
       )}
       </div>
     </PlanProvider>
