@@ -98,13 +98,13 @@ const orientGestionPublica: Orientacion = {
   subjects: [
     { id: '4536', codigo: '4536', nombre: 'Finanzas Públicas', area: 'publicas', corr: [], reqHasta: 2, term: '4-1', estado: 'pendiente' },
     { id: '4524', codigo: '4524', nombre: 'Política Económica Argentina', area: 'publicas', corr: [], reqHasta: 2, term: '4-1', estado: 'pendiente' },
-    { id: '4560', codigo: '4560', nombre: 'Estructura y Marco Legal del Sector Público', area: 'publicas', corr: [], reqHasta: 2, term: '4-1', estado: 'pendiente' },
-    { id: '4561', codigo: '4561', nombre: 'Laboratorio de Políticas Públicas', area: 'publicas', corr: [], reqHasta: 2, term: '4-1', estado: 'pendiente' },
+    { id: '4560', codigo: '4560', nombre: 'Estructura del Sector Público', area: 'publicas', corr: [], reqHasta: 2, term: '4-1', estado: 'pendiente' },
+    { id: '4561', codigo: '4561', nombre: 'Policy Lab: Políticas Públicas Sectoriales', area: 'publicas', corr: [], reqHasta: 2, term: '4-1', estado: 'pendiente' },
 
     { id: '4543', codigo: '4543', nombre: 'Políticas Públicas Comparadas', area: 'publicas', corr: [], reqHasta: 2, term: '4-2', estado: 'pendiente' },
     { id: '4562', codigo: '4562', nombre: 'Evaluación de Políticas Públicas', area: 'publicas', corr: [], reqHasta: 2, term: '4-2', estado: 'pendiente' },
     { id: '4354', codigo: '4354', nombre: 'Comportamiento Organizacional', area: 'publicas', corr: [], reqHasta: 2, term: '4-2', estado: 'pendiente' },
-    { id: '4563-64', codigo: '4563/4564', nombre: 'Gobierno Electrónico y Transparencia · o · Datos para Cientistas Sociales', area: 'publicas', corr: [], reqHasta: 2, term: '4-2', estado: 'pendiente' },
+    { id: '4563-64', codigo: '4563/4564', nombre: 'E-Government y Transparencia Pública · o · Datos para Cientistas Sociales', area: 'publicas', corr: [], reqHasta: 2, term: '4-2', estado: 'pendiente' },
     { id: '5604', codigo: '5604', nombre: 'Seminario de Graduación', area: 'metodos', corr: [], reqHasta: 2, term: '4-2', estado: 'pendiente' },
   ],
 };

@@ -96,6 +96,7 @@ const subjects: Subject[] = [
   { id: 'campo-2', codigo: null, nombre: '', area: 'electivas', corr: [], term: '5-2', estado: 'pendiente', esElectiva: true, slotLabel: 'Curso electivo o de campo menor' },
   { id: 'campo-3', codigo: null, nombre: '', area: 'electivas', corr: [], term: '5-2', estado: 'pendiente', esElectiva: true, slotLabel: 'Curso electivo o de campo menor' },
   { id: 'elec-conc-3', codigo: null, nombre: '', area: 'electivas', corr: [], term: '5-2', estado: 'pendiente', esElectiva: true, slotLabel: 'Electiva en concentración elegida' },
+  { id: 'practica-profesional', codigo: null, nombre: 'Práctica Profesional Supervisada', area: 'ing', corr: [], term: '5-2', estado: 'pendiente' },
 ];
 
 export const ingenieriaIndustrial: CarreraPlan = {
