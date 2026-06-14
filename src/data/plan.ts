@@ -18,6 +18,7 @@ import { cienciasSociales } from './ciencias-sociales';
 import { diseno } from './diseno';
 import { economia } from './economia';
 import { estudiosInternacionales } from './estudios-internacionales';
+import { historia } from './historia';
 
 /** Registro de planes disponibles, keyeado por id de carrera. */
 export const PLANS: Record<string, CarreraPlan> = {
@@ -32,6 +33,7 @@ export const PLANS: Record<string, CarreraPlan> = {
   [diseno.id]: diseno,
   [economia.id]: economia,
   [estudiosInternacionales.id]: estudiosInternacionales,
+  [historia.id]: historia,
   // Agregar acá las demás carreras a medida que se transcriben:
 };
 
