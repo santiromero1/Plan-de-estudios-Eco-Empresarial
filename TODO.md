@@ -55,7 +55,11 @@ Página simple que explique qué es y cuánto sale (para gente que llega de afue
 
 ## ✅ Checklist pre-launch (técnico)
 
-- [x] Activar "Confirm email" en Supabase.
+- [ ] **SMTP propio (Resend) en Supabase** — el mail integrado de Supabase es
+      sólo para pruebas (~2-4 mails/hora); con usuarios reales frena el registro
+      ("email rate limit exceeded"). Configurar en Authentication → Emails → SMTP.
+      Obligatorio antes de abrir el registro al público.
+- [x] Activar "Confirm email" en Supabase (requiere SMTP propio para escalar).
 - [ ] Cargar `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en Vercel
       (Settings → Environment Variables) — **antes** de que rebuildee.
 - [ ] Cambiar el **Site URL** de Supabase de `localhost` a
