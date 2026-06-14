@@ -103,9 +103,9 @@ function normalize(raw: unknown): { state: StateMap; order: string[] } {
 }
 
 /** Reconstruye el plan completo a partir de un payload guardado. */
-function reconstruct(raw: unknown, carrera: string): Subject[] {
+function reconstruct(raw: unknown, carrera: string, orientacion?: string | null): Subject[] {
   const { state, order } = normalize(raw);
-  return applyOrder(applyState(freshPlan(carrera), state), order);
+  return applyOrder(applyState(freshPlan(carrera, orientacion), state), order);
 }
 
 function readLocalPayload(userId: string, carrera: string): unknown {
@@ -131,7 +131,11 @@ export function saveLocalCache(userId: string, carrera: string, subjects: Subjec
 /** Carga el plan del usuario: primero intenta la nube; si no hay fila, usa la
     caché/legacy local y la sube (migración automática). Devuelve el plan
     reconstruido sobre el oficial. */
-export async function loadPlan(userId: string, carrera: string): Promise<Subject[]> {
+export async function loadPlan(
+  userId: string,
+  carrera: string,
+  orientacion?: string | null,
+): Promise<Subject[]> {
   const { data, error } = await supabase
     .from('plans')
     .select('data')
@@ -141,7 +145,7 @@ export async function loadPlan(userId: string, carrera: string): Promise<Subject
 
   const cloud = !error && data?.data ? normalize(data.data) : null;
   if (cloud && Object.keys(cloud.state).length > 0) {
-    const subjects = reconstruct(data!.data, carrera);
+    const subjects = reconstruct(data!.data, carrera, orientacion);
     saveLocalCache(userId, carrera, subjects);
     return subjects;
   }
@@ -150,13 +154,13 @@ export async function loadPlan(userId: string, carrera: string): Promise<Subject
   const localRaw = readLocalPayload(userId, carrera);
   const local = localRaw ? normalize(localRaw) : null;
   if (local && Object.keys(local.state).length > 0) {
-    const subjects = reconstruct(localRaw, carrera);
+    const subjects = reconstruct(localRaw, carrera, orientacion);
     // Migración: subimos lo local a la nube (best-effort, no bloquea).
     void syncPlanToCloud(userId, carrera, subjects);
     return subjects;
   }
 
-  return freshPlan(carrera);
+  return freshPlan(carrera, orientacion);
 }
 
 /** Sincroniza el plan a la nube (upsert por user_id+carrera). */
@@ -188,12 +192,19 @@ export function exportPlan(subjects: Subject[]): void {
 
 /** Importa un backup (array de materias) y lo reproyecta sobre el plan oficial
     actual, conservando tu progreso y el orden aunque la estructura haya cambiado. */
-export function parseImported(text: string, carrera: string): Subject[] | null {
+export function parseImported(
+  text: string,
+  carrera: string,
+  orientacion?: string | null,
+): Subject[] | null {
   try {
     const data = JSON.parse(text);
     if (Array.isArray(data) && data.every((s) => s && typeof s.id === 'string')) {
       const arr = data as Subject[];
-      return applyOrder(applyState(freshPlan(carrera), extractState(arr)), arr.map((s) => s.id));
+      return applyOrder(
+        applyState(freshPlan(carrera, orientacion), extractState(arr)),
+        arr.map((s) => s.id),
+      );
     }
   } catch {
     /* inválido */

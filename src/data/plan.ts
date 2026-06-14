@@ -12,6 +12,7 @@ import { tecnologiaDigital } from './tecnologia-digital';
 import { abogacia } from './abogacia';
 import { adminEmpresas } from './admin-empresas';
 import { arquitectura } from './arquitectura';
+import { cienciaPolitica } from './ciencia-politica';
 
 /** Registro de planes disponibles, keyeado por id de carrera. */
 export const PLANS: Record<string, CarreraPlan> = {
@@ -20,6 +21,7 @@ export const PLANS: Record<string, CarreraPlan> = {
   [abogacia.id]: abogacia,
   [adminEmpresas.id]: adminEmpresas,
   [arquitectura.id]: arquitectura,
+  [cienciaPolitica.id]: cienciaPolitica,
   // Agregar acá las demás carreras a medida que se transcriben:
 };
 
@@ -32,9 +34,32 @@ export function hasPlan(carreraId: string): boolean {
   return carreraId in PLANS;
 }
 
+/** Resuelve el plan EFECTIVO para una carrera + orientación: si la carrera
+    tiene orientaciones, suma las materias de la elegida al tronco común. */
+export function resolvePlan(
+  carreraId: string,
+  orientacionId?: string | null,
+): CarreraPlan | undefined {
+  const base = PLANS[carreraId];
+  if (!base) return undefined;
+  if (!base.orientaciones || base.orientaciones.length === 0) return base;
+  // Si no eligió (o no matchea), por defecto se muestra la primera orientación.
+  const orient = base.orientaciones.find((o) => o.id === orientacionId) ?? base.orientaciones[0];
+  return {
+    ...base,
+    label: `${base.label} · ${orient.label}`,
+    subjects: [...base.subjects, ...orient.subjects],
+  };
+}
+
+/** ¿La carrera tiene orientaciones a elegir? */
+export function tieneOrientaciones(carreraId: string): boolean {
+  return (PLANS[carreraId]?.orientaciones?.length ?? 0) > 0;
+}
+
 /** Copia profunda de las materias del plan oficial (estado inicial / reset). */
-export function freshPlan(carreraId: string): Subject[] {
-  const plan = getPlan(carreraId);
+export function freshPlan(carreraId: string, orientacionId?: string | null): Subject[] {
+  const plan = resolvePlan(carreraId, orientacionId);
   if (!plan) return [];
   return plan.subjects.map((s) => ({ ...s, corr: [...s.corr] }));
 }

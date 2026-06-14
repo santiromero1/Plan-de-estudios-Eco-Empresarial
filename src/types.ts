@@ -72,6 +72,14 @@ export interface PlanSummary {
   alertas: Conflict[];
 }
 
+/** Orientación de una carrera: materias propias de esa rama (típicamente el
+    último año), que se suman al tronco común. */
+export interface Orientacion {
+  id: string;
+  label: string;
+  subjects: Subject[];
+}
+
 /** Plan oficial completo de una carrera (áreas, grilla de años y materias). */
 export interface CarreraPlan {
   id: string; // id de carrera (coincide con CARRERAS en auth.ts)
@@ -79,5 +87,9 @@ export interface CarreraPlan {
   notaAprobacion: number;
   areas: AreaDef[];
   terms: Term[];
+  /** materias del tronco común. Si la carrera tiene orientaciones, las
+      materias propias de cada una se agregan desde `orientaciones`. */
   subjects: Subject[];
+  /** orientaciones de la carrera (si las tiene); el alumno elige una. */
+  orientaciones?: Orientacion[];
 }

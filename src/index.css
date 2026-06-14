@@ -1689,6 +1689,43 @@ select.text-input {
   box-shadow: none;
 }
 
+/* Toggle de orientación (header) */
+.orient-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px 6px 11px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border-2);
+  background: var(--surface);
+  cursor: pointer;
+  transition: 0.16s;
+}
+.orient-toggle:hover {
+  border-color: var(--economia);
+}
+.orient-toggle-ico {
+  display: inline-flex;
+  color: var(--economia);
+}
+.orient-toggle-ico svg {
+  width: 16px;
+  height: 16px;
+}
+.orient-toggle-select {
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  padding-right: 2px;
+}
+.orient-toggle-select:focus {
+  outline: none;
+}
+
 /* Pestañas Ingresar / Crear cuenta */
 .login-tabs {
   display: flex;

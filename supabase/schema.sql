@@ -10,7 +10,9 @@ create type public.access_status as enum ('pending', 'active', 'expired');
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   username text,
+  email text, -- denormalizado, para identificar al usuario en el Table Editor
   carrera text not null,
+  orientacion text, -- orientación elegida (sólo carreras con orientaciones)
   access_status public.access_status not null default 'pending',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

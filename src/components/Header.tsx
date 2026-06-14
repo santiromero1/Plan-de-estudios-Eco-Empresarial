@@ -193,10 +193,41 @@ function ActionsMenu({
   );
 }
 
+function OrientationToggle({
+  orientaciones,
+  actual,
+  onChange,
+}: {
+  orientaciones: { id: string; label: string }[];
+  actual: string | null;
+  onChange: (id: string) => void;
+}) {
+  if (orientaciones.length < 2) return null;
+  return (
+    <label className="orient-toggle" title="Orientación de la carrera">
+      <span className="orient-toggle-ico">{Icons.cap}</span>
+      <select
+        className="orient-toggle-select"
+        value={actual ?? orientaciones[0].id}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        {orientaciones.map((o) => (
+          <option key={o.id} value={o.id}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 interface Props {
   view: View;
   setView: (v: View) => void;
   summary: PlanSummary;
+  orientaciones: { id: string; label: string }[];
+  orientacionActual: string | null;
+  onChangeOrientacion: (id: string) => void;
   onJump: (s: Subject) => void;
   onExport: () => void;
   onImport: () => void;
@@ -208,6 +239,9 @@ export function Header({
   view,
   setView,
   summary,
+  orientaciones,
+  orientacionActual,
+  onChangeOrientacion,
   onJump,
   onExport,
   onImport,
@@ -220,6 +254,11 @@ export function Header({
       <div className="header-inner">
         <Brand />
         <Tabs view={view} setView={setView} />
+        <OrientationToggle
+          orientaciones={orientaciones}
+          actual={orientacionActual}
+          onChange={onChangeOrientacion}
+        />
         <div className="header-spacer" />
         <div className="metrics">
           <div className="metric">

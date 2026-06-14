@@ -4,7 +4,7 @@
      - Con acceso activo → Planner (plan + autoguardado en la nube). */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CarreraPlan, Subject } from './types';
-import { freshPlan, getPlan } from './data/plan';
+import { freshPlan, getPlan, resolvePlan } from './data/plan';
 import { buildIndex, gateIncumplido, incumplidas, planSummary } from './lib/logic';
 import { moveOrReorder } from './lib/board';
 import {
@@ -21,7 +21,7 @@ import { SubjectPanel } from './components/SubjectPanel';
 import { Login } from './components/Login';
 import { AccessGate } from './components/AccessGate';
 import { PlanProvider } from './context/PlanContext';
-import { getActiveSession, logout, type Session } from './lib/auth';
+import { getActiveSession, logout, setOrientacion, type Session } from './lib/auth';
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -51,14 +51,35 @@ export default function App() {
     return <AccessGate session={session} onLogout={onLogout} />;
   }
 
-  const plan = getPlan(session.carrera);
-  if (!plan) {
+  const base = getPlan(session.carrera);
+  if (!base) {
     // No debería pasar (el login sólo deja entrar a carreras con plan),
     // pero por las dudas no rompemos la app.
     return <AccessGate session={session} onLogout={onLogout} />;
   }
 
-  return <Planner session={session} plan={plan} onLogout={onLogout} />;
+  const orientaciones = base.orientaciones ?? [];
+  // Orientación efectiva: la elegida, o la primera por defecto.
+  const orientacionActual = session.orientacion ?? orientaciones[0]?.id ?? null;
+  const plan = resolvePlan(session.carrera, orientacionActual)!;
+
+  const userId = session.userId;
+  async function onChangeOrientacion(orientacionId: string) {
+    // Actualizamos la UI al toque y persistimos en segundo plano (best-effort).
+    setSession((s) => (s ? { ...s, orientacion: orientacionId } : s));
+    await setOrientacion(userId, orientacionId);
+  }
+
+  return (
+    <Planner
+      session={session}
+      plan={plan}
+      orientaciones={orientaciones}
+      orientacionActual={orientacionActual}
+      onChangeOrientacion={onChangeOrientacion}
+      onLogout={onLogout}
+    />
+  );
 }
 
 type View = 'grid' | 'timeline';
@@ -67,10 +88,16 @@ type SaveState = 'idle' | 'saving' | 'saved' | 'error';
 function Planner({
   session,
   plan,
+  orientaciones,
+  orientacionActual,
+  onChangeOrientacion,
   onLogout,
 }: {
   session: Session;
   plan: CarreraPlan;
+  orientaciones: { id: string; label: string }[];
+  orientacionActual: string | null;
+  onChangeOrientacion: (id: string) => void;
   onLogout: () => void;
 }) {
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -85,7 +112,7 @@ function Planner({
   useEffect(() => {
     let cancelled = false;
     setPlanLoading(true);
-    loadPlan(session.userId, session.carrera).then((plan) => {
+    loadPlan(session.userId, session.carrera, session.orientacion).then((plan) => {
       if (!cancelled) {
         setSubjects(plan);
         setPlanLoading(false);
@@ -95,7 +122,7 @@ function Planner({
       cancelled = true;
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
-  }, [session.userId, session.carrera]);
+  }, [session.userId, session.carrera, session.orientacion]);
 
   const byId = useMemo(() => buildIndex(subjects), [subjects]);
 
@@ -147,7 +174,7 @@ function Planner({
     if (!f) return;
     const reader = new FileReader();
     reader.onload = () => {
-      const data = parseImported(String(reader.result), session.carrera);
+      const data = parseImported(String(reader.result), session.carrera, session.orientacion);
       if (data) commit(data);
       else alert('Archivo inválido: no es un plan exportado válido.');
     };
@@ -156,7 +183,7 @@ function Planner({
   }
   function onReset() {
     if (confirm('¿Resetear el plan al estado oficial inicial? Se perderán tus cambios.')) {
-      commit(freshPlan(session.carrera));
+      commit(freshPlan(session.carrera, session.orientacion));
       setOpenId(null);
     }
   }
@@ -174,6 +201,9 @@ function Planner({
         view={view}
         setView={setView}
         summary={summary}
+        orientaciones={orientaciones}
+        orientacionActual={orientacionActual}
+        onChangeOrientacion={onChangeOrientacion}
         onJump={(s) => {
           setView('grid');
           setOpenId(s.id);

@@ -53,6 +53,8 @@ export interface Session {
   username: string | null;
   carrera: string; // id de Carrera
   accessStatus: AccessStatus;
+  /** orientación elegida (sólo carreras con orientaciones); null si no eligió. */
+  orientacion: string | null;
 }
 
 export type AuthResult =
@@ -65,15 +67,26 @@ interface ProfileRow {
   username: string | null;
   carrera: string;
   access_status: AccessStatus;
+  orientacion?: string | null;
 }
 
-/** Trae el perfil del usuario logueado y arma la Session. */
+/** Trae el perfil del usuario logueado y arma la Session. Tolera que la
+    columna `orientacion` todavía no exista (cae a la versión sin ella). */
 async function buildSession(userId: string, email: string): Promise<Session | null> {
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('profiles')
-    .select('username, carrera, access_status')
+    .select('username, carrera, access_status, orientacion')
     .eq('id', userId)
     .single<ProfileRow>();
+
+  if (error) {
+    // Fallback: columna `orientacion` aún no creada en la DB.
+    ({ data, error } = await supabase
+      .from('profiles')
+      .select('username, carrera, access_status')
+      .eq('id', userId)
+      .single<ProfileRow>());
+  }
 
   if (error || !data) return null;
   return {
@@ -82,7 +95,21 @@ async function buildSession(userId: string, email: string): Promise<Session | nu
     username: data.username,
     carrera: data.carrera,
     accessStatus: data.access_status,
+    orientacion: data.orientacion ?? null,
   };
+}
+
+/** Guarda la orientación elegida por el usuario en su perfil. */
+export async function setOrientacion(
+  userId: string,
+  orientacion: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ orientacion })
+    .eq('id', userId);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
 }
 
 /** Registro: crea el usuario en Supabase Auth. El trigger `handle_new_user`
