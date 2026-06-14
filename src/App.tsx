@@ -15,6 +15,7 @@ import {
   syncPlanToCloud,
 } from './lib/storage';
 import { Header, Legend } from './components/Header';
+import { Icons } from './components/icons';
 import { GridView } from './components/GridView';
 import { TimelineView } from './components/TimelineView';
 import { SubjectPanel } from './components/SubjectPanel';
@@ -215,6 +216,13 @@ function Planner({
       />
 
       <SaveBadge state={saveState} />
+
+      {plan.aviso && (
+        <div className="plan-aviso">
+          <span className="plan-aviso-ico">{Icons.warn}</span>
+          {plan.aviso}
+        </div>
+      )}
 
       <input
         type="file"

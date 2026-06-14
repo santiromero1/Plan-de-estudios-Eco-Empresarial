@@ -92,4 +92,6 @@ export interface CarreraPlan {
   subjects: Subject[];
   /** orientaciones de la carrera (si las tiene); el alumno elige una. */
   orientaciones?: Orientacion[];
+  /** aviso para mostrar arriba del plan (ej. "sin correlativas cargadas"). */
+  aviso?: string;
 }

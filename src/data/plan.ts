@@ -19,6 +19,7 @@ import { diseno } from './diseno';
 import { economia } from './economia';
 import { estudiosInternacionales } from './estudios-internacionales';
 import { historia } from './historia';
+import { ingenieriaIndustrial } from './ingenieria-industrial';
 
 /** Registro de planes disponibles, keyeado por id de carrera. */
 export const PLANS: Record<string, CarreraPlan> = {
@@ -34,7 +35,7 @@ export const PLANS: Record<string, CarreraPlan> = {
   [economia.id]: economia,
   [estudiosInternacionales.id]: estudiosInternacionales,
   [historia.id]: historia,
-  // Agregar acá las demás carreras a medida que se transcriben:
+  [ingenieriaIndustrial.id]: ingenieriaIndustrial,
 };
 
 export function getPlan(carreraId: string): CarreraPlan | undefined {

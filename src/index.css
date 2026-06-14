@@ -1689,6 +1689,31 @@ select.text-input {
   box-shadow: none;
 }
 
+/* Aviso del plan (ej. sin correlativas cargadas) */
+.plan-aviso {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: 1180px;
+  margin: 14px auto 0;
+  padding: 11px 16px;
+  border-radius: 12px;
+  background: var(--warning-tint);
+  color: #8a6400;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--warning);
+}
+.plan-aviso-ico {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--warning);
+}
+.plan-aviso-ico svg {
+  width: 17px;
+  height: 17px;
+}
+
 /* Toggle de orientación (header) */
 .orient-toggle {
   display: inline-flex;
